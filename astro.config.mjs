@@ -31,8 +31,22 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+        // Don't precache HTML - use network-first for navigation
+        globPatterns: ['**/*.{js,css,svg,png,ico,woff,woff2}'],
+        navigateFallback: null,
         runtimeCaching: [
+          {
+            // Network-first for HTML pages to ensure fresh content
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages-cache',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 // 1 hour
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
