@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { validateMnemonic, mnemonicToSeed } from '../../lib/mnemonic';
 import { deriveKey, verifyKey } from '../../lib/crypto';
 import { db } from '../../lib/db';
-import { setEncryptionKey } from '../../lib/store';
+import { setEncryptionKey, setCurrentVaultId } from '../../lib/store';
 
 export function SignIn() {
   const [mnemonic, setMnemonic] = useState('');
@@ -33,21 +33,22 @@ export function SignIn() {
         return;
       }
 
-      let verified = false;
+      let matchedVaultId: string | null = null;
       for (const vault of vaults) {
         if (await verifyKey(vault.encryptedVerifier, key)) {
-          verified = true;
+          matchedVaultId = vault.id;
           break;
         }
       }
 
-      if (!verified) {
+      if (!matchedVaultId) {
         setError('Invalid recovery phrase for this vault.');
         setIsSigningIn(false);
         return;
       }
 
       setEncryptionKey(key);
+      setCurrentVaultId(matchedVaultId);
       window.location.href = '/notes';
     } catch (err) {
       console.error('Sign in failed:', err);

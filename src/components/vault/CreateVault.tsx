@@ -3,7 +3,7 @@ import { MnemonicDisplay } from './MnemonicDisplay';
 import { generateMnemonic, mnemonicToSeed } from '../../lib/mnemonic';
 import { deriveKey, createVerifier } from '../../lib/crypto';
 import { db } from '../../lib/db';
-import { setEncryptionKey } from '../../lib/store';
+import { setEncryptionKey, setCurrentVaultId } from '../../lib/store';
 
 export function CreateVault() {
   const [mnemonic, setMnemonic] = useState<string>('');
@@ -33,6 +33,7 @@ export function CreateVault() {
       });
 
       setEncryptionKey(key);
+      setCurrentVaultId(vaultId);
       window.location.href = '/notes';
     } catch (err) {
       console.error('Failed to create vault:', err);

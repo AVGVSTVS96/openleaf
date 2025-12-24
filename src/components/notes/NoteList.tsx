@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { User } from 'lucide-react';
 import { db } from '../../lib/db';
 import { decryptNoteData, encryptNoteData } from '../../lib/crypto';
-import { getEncryptionKey, isAuthenticated, clearEncryptionKey } from '../../lib/store';
+import { getEncryptionKey, getCurrentVaultId, isAuthenticated, clearEncryptionKey } from '../../lib/store';
 
 interface DecryptedNote {
   id: string;
@@ -30,12 +30,17 @@ export function NoteList() {
     setIsLoading(true);
     try {
       const key = getEncryptionKey();
-      if (!key) {
+      const vaultId = getCurrentVaultId();
+      if (!key || !vaultId) {
         window.location.href = '/signin';
         return;
       }
 
-      const encryptedNotes = await db.notes.orderBy('updatedAt').reverse().toArray();
+      const encryptedNotes = await db.notes
+        .where('vaultId')
+        .equals(vaultId)
+        .reverse()
+        .sortBy('updatedAt');
       const decryptedNotes: DecryptedNote[] = [];
 
       for (const note of encryptedNotes) {
@@ -72,7 +77,8 @@ export function NoteList() {
 
   async function handleCreateNote() {
     const key = getEncryptionKey();
-    if (!key) {
+    const vaultId = getCurrentVaultId();
+    if (!key || !vaultId) {
       window.location.href = '/signin';
       return;
     }
@@ -84,6 +90,7 @@ export function NoteList() {
 
       await db.notes.add({
         id,
+        vaultId,
         encryptedData,
         iv,
         createdAt: now,
