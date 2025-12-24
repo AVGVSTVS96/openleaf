@@ -2,8 +2,11 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import AstroPWA from '@vite-pwa/astro';
+import vercel from '@astrojs/vercel';
 
 export default defineConfig({
+  output: 'hybrid',
+  adapter: vercel(),
   integrations: [
     react(),
     AstroPWA({
