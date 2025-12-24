@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NoteList } from './NoteList';
 import { NoteEditor } from './NoteEditor';
-import { isAuthenticated } from '../../lib/store';
+import { isAuthenticated, restoreAuthFromNavigation } from '../../lib/store';
 
 type View =
   | { type: 'list' }
@@ -9,19 +9,32 @@ type View =
 
 export function NotesApp() {
   const [view, setView] = useState<View>({ type: 'list' });
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      window.location.href = '/signin';
-      return;
+    async function initialize() {
+      // Try to restore auth from sessionStorage (after page navigation)
+      if (!isAuthenticated()) {
+        await restoreAuthFromNavigation();
+      }
+
+      // If still not authenticated, redirect to sign in
+      if (!isAuthenticated()) {
+        window.location.href = '/signin';
+        return;
+      }
+
+      // Handle initial route from URL
+      const path = window.location.pathname;
+      const match = path.match(/^\/notes\/([^/]+)$/);
+      if (match) {
+        setView({ type: 'edit', noteId: match[1] });
+      }
+
+      setIsInitializing(false);
     }
 
-    // Handle initial route from URL
-    const path = window.location.pathname;
-    const match = path.match(/^\/notes\/([^/]+)$/);
-    if (match) {
-      setView({ type: 'edit', noteId: match[1] });
-    }
+    initialize();
 
     // Handle browser back/forward
     const handlePopState = () => {
@@ -43,6 +56,10 @@ export function NotesApp() {
     window.history.pushState({}, '', url);
     setView(newView);
   };
+
+  if (isInitializing) {
+    return <p className="text-[#888]">Loading...</p>;
+  }
 
   if (view.type === 'edit') {
     return (

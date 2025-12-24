@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { validateMnemonic, mnemonicToSeed } from '../../lib/mnemonic';
 import { deriveKey, verifyKey } from '../../lib/crypto';
 import { db } from '../../lib/db';
-import { setEncryptionKey, setCurrentVaultId } from '../../lib/store';
+import { saveAuthForNavigation } from '../../lib/store';
 
 export function SignIn() {
   const [mnemonic, setMnemonic] = useState('');
@@ -47,8 +47,8 @@ export function SignIn() {
         return;
       }
 
-      setEncryptionKey(key);
-      setCurrentVaultId(matchedVaultId);
+      // Save auth state to sessionStorage to survive page navigation
+      saveAuthForNavigation(seed, matchedVaultId);
       window.location.href = '/notes';
     } catch (err) {
       console.error('Sign in failed:', err);
