@@ -1,0 +1,185 @@
+import { useState, useEffect, useMemo } from 'react';
+import { User } from 'lucide-react';
+import { db } from '../../lib/db';
+import { decrypt } from '../../lib/crypto';
+import { getEncryptionKey, isAuthenticated, clearEncryptionKey } from '../../lib/store';
+
+interface DecryptedNote {
+  id: string;
+  title: string;
+  content: string;
+  updatedAt: number;
+}
+
+export function NoteList() {
+  const [notes, setNotes] = useState<DecryptedNote[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [showAccount, setShowAccount] = useState(false);
+  const [mnemonic, setMnemonic] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      window.location.href = '/signin';
+      return;
+    }
+    loadNotes();
+  }, []);
+
+  async function loadNotes() {
+    setIsLoading(true);
+    try {
+      const key = getEncryptionKey();
+      if (!key) {
+        window.location.href = '/signin';
+        return;
+      }
+
+      const encryptedNotes = await db.notes.orderBy('updatedAt').reverse().toArray();
+      const decryptedNotes: DecryptedNote[] = [];
+
+      for (const note of encryptedNotes) {
+        try {
+          const title = await decrypt(note.encryptedTitle, note.iv, key);
+          const content = await decrypt(note.encryptedContent, note.iv, key);
+          decryptedNotes.push({
+            id: note.id,
+            title: title || content.split('\n')[0] || 'Untitled',
+            content,
+            updatedAt: note.updatedAt
+          });
+        } catch (err) {
+          console.error('Failed to decrypt note:', note.id, err);
+        }
+      }
+
+      setNotes(decryptedNotes);
+    } catch (err) {
+      console.error('Failed to load notes:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const filteredNotes = useMemo(() => {
+    if (!searchQuery.trim()) return notes;
+    const query = searchQuery.toLowerCase();
+    return notes.filter(
+      (note) =>
+        note.title.toLowerCase().includes(query) ||
+        note.content.toLowerCase().includes(query)
+    );
+  }, [notes, searchQuery]);
+
+  async function handleCreateNote() {
+    const key = getEncryptionKey();
+    if (!key) {
+      window.location.href = '/signin';
+      return;
+    }
+
+    try {
+      const id = crypto.randomUUID();
+      const now = Date.now();
+      const { encrypt } = await import('../../lib/crypto');
+      const { ciphertext: encryptedTitle, iv } = await encrypt('', key);
+      const { ciphertext: encryptedContent } = await encrypt('', key);
+
+      await db.notes.add({
+        id,
+        encryptedTitle,
+        encryptedContent,
+        iv,
+        createdAt: now,
+        updatedAt: now
+      });
+
+      window.location.href = `/notes/${id}`;
+    } catch (err) {
+      console.error('Failed to create note:', err);
+    }
+  }
+
+  function handleSignOut() {
+    clearEncryptionKey();
+    window.location.href = '/';
+  }
+
+  if (isLoading) {
+    return <p className="text-[#888]">Loading...</p>;
+  }
+
+  return (
+    <div className="flex-1 space-y-6">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search notes"
+        className="w-full p-3 bg-transparent border border-[#ccc] focus:outline-none focus:border-[#888]"
+      />
+
+      <div className="space-y-2">
+        {filteredNotes.length === 0 ? (
+          <p className="text-[#888]">
+            {searchQuery ? 'No notes found.' : 'No notes yet.'}
+          </p>
+        ) : (
+          filteredNotes.map((note) => (
+            <a
+              key={note.id}
+              href={`/notes/${note.id}`}
+              className="block"
+            >
+              {note.title || 'Untitled'}
+            </a>
+          ))
+        )}
+      </div>
+
+      <div className="flex items-center gap-4 pt-4">
+        <button
+          onClick={handleCreateNote}
+          className="px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] transition-colors"
+        >
+          Create note
+        </button>
+
+        <button
+          onClick={() => setShowAccount(!showAccount)}
+          className="p-2 rounded-full border border-[#ccc] hover:border-[#888] transition-colors"
+        >
+          <User size={20} />
+        </button>
+      </div>
+
+      {showAccount && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#FAF8F5] p-6 max-w-md w-full shadow-lg relative">
+            <button
+              onClick={() => setShowAccount(false)}
+              className="absolute top-4 right-4 text-[#888] hover:text-black"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-lg font-bold mb-2 md-h2">Account</h2>
+            <p className="text-[#888] mb-4">Manage your vault access.</p>
+
+            <h3 className="text-sm font-bold mb-2 md-h3 uppercase">Vault Key</h3>
+            <p className="text-[#888] mb-4 text-sm">
+              Your vault key is only stored in memory and will be cleared when you close the tab.
+            </p>
+
+            <button
+              onClick={handleSignOut}
+              className="w-full px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

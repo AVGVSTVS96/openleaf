@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="OpenLeaf - Encrypted Notes">
+  <main class="min-h-screen flex flex-col px-6 py-12 max-w-xl mx-auto">
+    <div class="flex-1 space-y-6">
+      <div class="text-2xl">🌿</div>
+
+      <h1 class="text-xl font-bold md-h1">OpenLeaf</h1>
+
+      <p>End to end encrypted offline markdown notes.</p>
+
+      <p>No AI. Privately yours.</p>
+
+      <div class="space-y-2 pt-2">
+        <a href="/create" class="block">Create new vault</a>
+        <a href="/signin" class="block">Sign in to existing vault</a>
+      </div>
+
+      <p class="pt-4">100% free to use. No limits. No catch.</p>
+
+      <p class="text-[#888]">
+        Your vault key never leaves your device or gets sent to the server –
+        it's only used to encrypt updates before they're sent, so no one except
+        you can read what you write.
+      </p>
+    </div>
+
+    <footer class="pt-8 text-[#888]">
+      <p>Created by <a href="https://github.com/AVGVSTVS96" class="text-[#888]">@AVGVSTVS96</a></p>
+    </footer>
+  </main>
+</Layout>

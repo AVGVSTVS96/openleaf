@@ -1,0 +1,14 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { NoteEditor } from '../../components/notes/NoteEditor';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+---
+
+<Layout title="Edit Note - OpenLeaf">
+  <main class="min-h-screen flex flex-col px-6 py-12 max-w-xl mx-auto">
+    <NoteEditor noteId={id!} client:load />
+  </main>
+</Layout>
