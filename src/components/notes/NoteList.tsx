@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { User } from 'lucide-react';
 import { db } from '../../lib/db';
-import { decrypt } from '../../lib/crypto';
+import { decryptNoteData, encryptNoteData } from '../../lib/crypto';
 import { getEncryptionKey, isAuthenticated, clearEncryptionKey } from '../../lib/store';
 
 interface DecryptedNote {
@@ -40,12 +40,11 @@ export function NoteList() {
 
       for (const note of encryptedNotes) {
         try {
-          const title = await decrypt(note.encryptedTitle, note.iv, key);
-          const content = await decrypt(note.encryptedContent, note.iv, key);
+          const noteData = await decryptNoteData(note.encryptedData, note.iv, key);
           decryptedNotes.push({
             id: note.id,
-            title: title || content.split('\n')[0] || 'Untitled',
-            content,
+            title: noteData.title || noteData.content.split('\n')[0] || 'Untitled',
+            content: noteData.content,
             updatedAt: note.updatedAt
           });
         } catch (err) {
@@ -81,14 +80,11 @@ export function NoteList() {
     try {
       const id = crypto.randomUUID();
       const now = Date.now();
-      const { encrypt } = await import('../../lib/crypto');
-      const { ciphertext: encryptedTitle, iv } = await encrypt('', key);
-      const { ciphertext: encryptedContent } = await encrypt('', key);
+      const { encryptedData, iv } = await encryptNoteData({ title: '', content: '' }, key);
 
       await db.notes.add({
         id,
-        encryptedTitle,
-        encryptedContent,
+        encryptedData,
         iv,
         createdAt: now,
         updatedAt: now

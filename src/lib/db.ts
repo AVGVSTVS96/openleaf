@@ -8,8 +8,7 @@ export interface Vault {
 
 export interface Note {
   id: string;
-  encryptedTitle: string;
-  encryptedContent: string;
+  encryptedData: string; // JSON blob containing { title, content }
   iv: string;
   createdAt: number;
   updatedAt: number;

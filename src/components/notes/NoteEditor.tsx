@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Menu } from 'lucide-react';
 import { db } from '../../lib/db';
-import { encrypt, decrypt } from '../../lib/crypto';
+import { encryptNoteData, decryptNoteData } from '../../lib/crypto';
 import { getEncryptionKey, isAuthenticated } from '../../lib/store';
 
 interface NoteEditorProps {
@@ -44,9 +44,9 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
         return;
       }
 
-      const decryptedContent = await decrypt(note.encryptedContent, note.iv, key);
-      setContent(decryptedContent);
-      lastSavedContentRef.current = decryptedContent;
+      const noteData = await decryptNoteData(note.encryptedData, note.iv, key);
+      setContent(noteData.content);
+      lastSavedContentRef.current = noteData.content;
     } catch (err) {
       console.error('Failed to load note:', err);
     } finally {
@@ -64,12 +64,10 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       const lines = newContent.split('\n');
       const title = lines[0]?.replace(/^#\s*/, '').trim() || '';
 
-      const { ciphertext: encryptedTitle, iv } = await encrypt(title, key);
-      const { ciphertext: encryptedContent } = await encrypt(newContent, key);
+      const { encryptedData, iv } = await encryptNoteData({ title, content: newContent }, key);
 
       await db.notes.update(noteId, {
-        encryptedTitle,
-        encryptedContent,
+        encryptedData,
         iv,
         updatedAt: Date.now()
       });
