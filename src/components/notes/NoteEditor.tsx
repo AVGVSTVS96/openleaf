@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { db } from '../../lib/db';
 import { encrypt, decrypt } from '../../lib/crypto';
 import { getEncryptionKey, isAuthenticated } from '../../lib/store';
@@ -11,8 +11,7 @@ interface NoteEditorProps {
 export function NoteEditor({ noteId }: NoteEditorProps) {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [showMenu, setShowMenu] = useState(false);
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>('');
 
@@ -21,7 +20,6 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       window.location.href = '/signin';
       return;
     }
-
     loadNote();
 
     return () => {
@@ -33,8 +31,6 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 
   async function loadNote() {
     setIsLoading(true);
-    setError('');
-
     try {
       const key = getEncryptionKey();
       if (!key) {
@@ -43,10 +39,8 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       }
 
       const note = await db.notes.get(noteId);
-
       if (!note) {
-        setError('Note not found.');
-        setIsLoading(false);
+        window.location.href = '/notes';
         return;
       }
 
@@ -55,7 +49,6 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       lastSavedContentRef.current = decryptedContent;
     } catch (err) {
       console.error('Failed to load note:', err);
-      setError('Failed to load note.');
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +60,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     const key = getEncryptionKey();
     if (!key) return;
 
-    setIsSaving(true);
-
     try {
-      // Extract title from first line
       const lines = newContent.split('\n');
       const title = lines[0]?.replace(/^#\s*/, '').trim() || '';
 
@@ -87,16 +77,12 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       lastSavedContentRef.current = newContent;
     } catch (err) {
       console.error('Failed to save note:', err);
-      setError('Failed to save note.');
-    } finally {
-      setIsSaving(false);
     }
   }, [noteId]);
 
   function handleContentChange(newContent: string) {
     setContent(newContent);
 
-    // Debounced auto-save (500ms)
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
@@ -107,21 +93,17 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this note? This cannot be undone.')) {
-      return;
-    }
+    if (!confirm('Delete this note?')) return;
 
     try {
       await db.notes.delete(noteId);
       window.location.href = '/notes';
     } catch (err) {
       console.error('Failed to delete note:', err);
-      setError('Failed to delete note.');
     }
   }
 
   function handleBack() {
-    // Save before navigating
     if (content !== lastSavedContentRef.current) {
       saveNote(content);
     }
@@ -129,62 +111,44 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-[#6B7280]">Loading note...</p>
-      </div>
-    );
-  }
-
-  if (error && !content) {
-    return (
-      <div className="space-y-4">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-[#6B7280] hover:text-black transition-colors"
-        >
-          <ArrowLeft size={20} />
-          <span>Back to notes</span>
-        </button>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
-          {error}
-        </div>
-      </div>
-    );
+    return <p className="text-[#888]">Loading...</p>;
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-[#6B7280] hover:text-black transition-colors"
-        >
-          <ArrowLeft size={20} />
-          <span>Back</span>
-        </button>
-
-        <div className="flex items-center gap-4">
-          {isSaving && (
-            <span className="text-sm text-[#6B7280]">Saving...</span>
-          )}
-          <button
-            onClick={handleDelete}
-            className="p-2 text-[#6B7280] hover:text-red-600 transition-colors"
-            title="Delete note"
-          >
-            <Trash2 size={20} />
-          </button>
-        </div>
-      </div>
-
+    <div className="flex flex-col flex-1 min-h-[calc(100vh-6rem)]">
       <textarea
         value={content}
         onChange={(e) => handleContentChange(e.target.value)}
+        className="flex-1 w-full bg-transparent resize-none focus:outline-none"
         placeholder="Start writing..."
-        className="flex-1 w-full p-4 font-mono text-base bg-white border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
         autoFocus
       />
+
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className="p-3 bg-[#FAF8F5] border border-[#ccc] hover:border-[#888] transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+
+        {showMenu && (
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#FAF8F5] border border-[#ccc] shadow-lg min-w-[150px]">
+            <button
+              onClick={handleBack}
+              className="block w-full px-4 py-2 text-left hover:bg-[#E8E4DF] transition-colors"
+            >
+              ← Back to notes
+            </button>
+            <button
+              onClick={handleDelete}
+              className="block w-full px-4 py-2 text-left text-red-600 hover:bg-[#E8E4DF] transition-colors"
+            >
+              Delete note
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

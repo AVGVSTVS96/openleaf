@@ -1,11 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus } from 'lucide-react';
-import { SearchBar } from './SearchBar';
-import { NoteItem } from './NoteItem';
-import { Button } from '../ui/Button';
-import { db, type Note } from '../../lib/db';
+import { User } from 'lucide-react';
+import { db } from '../../lib/db';
 import { decrypt } from '../../lib/crypto';
-import { getEncryptionKey, isAuthenticated } from '../../lib/store';
+import { getEncryptionKey, isAuthenticated, clearEncryptionKey } from '../../lib/store';
 
 interface DecryptedNote {
   id: string;
@@ -18,21 +15,19 @@ export function NoteList() {
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const [showAccount, setShowAccount] = useState(false);
+  const [mnemonic, setMnemonic] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
       window.location.href = '/signin';
       return;
     }
-
     loadNotes();
   }, []);
 
   async function loadNotes() {
     setIsLoading(true);
-    setError('');
-
     try {
       const key = getEncryptionKey();
       if (!key) {
@@ -47,10 +42,9 @@ export function NoteList() {
         try {
           const title = await decrypt(note.encryptedTitle, note.iv, key);
           const content = await decrypt(note.encryptedContent, note.iv, key);
-
           decryptedNotes.push({
             id: note.id,
-            title,
+            title: title || content.split('\n')[0] || 'Untitled',
             content,
             updatedAt: note.updatedAt
           });
@@ -62,7 +56,6 @@ export function NoteList() {
       setNotes(decryptedNotes);
     } catch (err) {
       console.error('Failed to load notes:', err);
-      setError('Failed to load notes.');
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +63,6 @@ export function NoteList() {
 
   const filteredNotes = useMemo(() => {
     if (!searchQuery.trim()) return notes;
-
     const query = searchQuery.toLowerCase();
     return notes.filter(
       (note) =>
@@ -89,10 +81,7 @@ export function NoteList() {
     try {
       const id = crypto.randomUUID();
       const now = Date.now();
-
-      // Import encrypt function
       const { encrypt } = await import('../../lib/crypto');
-
       const { ciphertext: encryptedTitle, iv } = await encrypt('', key);
       const { ciphertext: encryptedContent } = await encrypt('', key);
 
@@ -108,55 +97,89 @@ export function NoteList() {
       window.location.href = `/notes/${id}`;
     } catch (err) {
       console.error('Failed to create note:', err);
-      setError('Failed to create note.');
     }
   }
 
+  function handleSignOut() {
+    clearEncryptionKey();
+    window.location.href = '/';
+  }
+
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-[#6B7280]">Loading notes...</p>
-      </div>
-    );
+    return <p className="text-[#888]">Loading...</p>;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
-        </div>
-        <Button onClick={handleCreateNote} className="flex items-center gap-2">
-          <Plus size={18} />
-          <span>New note</span>
-        </Button>
-      </div>
+    <div className="flex-1 space-y-6">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search notes"
+        className="w-full p-3 bg-transparent border border-[#ccc] focus:outline-none focus:border-[#888]"
+      />
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
-          {error}
-        </div>
-      )}
-
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="space-y-2">
         {filteredNotes.length === 0 ? (
-          <div className="p-8 text-center text-[#6B7280]">
-            {searchQuery
-              ? 'No notes found matching your search.'
-              : 'No notes yet. Create your first note!'}
-          </div>
+          <p className="text-[#888]">
+            {searchQuery ? 'No notes found.' : 'No notes yet.'}
+          </p>
         ) : (
           filteredNotes.map((note) => (
-            <NoteItem
+            <a
               key={note.id}
-              id={note.id}
-              title={note.title}
-              updatedAt={note.updatedAt}
-              onClick={() => (window.location.href = `/notes/${note.id}`)}
-            />
+              href={`/notes/${note.id}`}
+              className="block"
+            >
+              {note.title || 'Untitled'}
+            </a>
           ))
         )}
       </div>
+
+      <div className="flex items-center gap-4 pt-4">
+        <button
+          onClick={handleCreateNote}
+          className="px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] transition-colors"
+        >
+          Create note
+        </button>
+
+        <button
+          onClick={() => setShowAccount(!showAccount)}
+          className="p-2 rounded-full border border-[#ccc] hover:border-[#888] transition-colors"
+        >
+          <User size={20} />
+        </button>
+      </div>
+
+      {showAccount && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#FAF8F5] p-6 max-w-md w-full shadow-lg relative">
+            <button
+              onClick={() => setShowAccount(false)}
+              className="absolute top-4 right-4 text-[#888] hover:text-black"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-lg font-bold mb-2 md-h2">Account</h2>
+            <p className="text-[#888] mb-4">Manage your vault access.</p>
+
+            <h3 className="text-sm font-bold mb-2 md-h3 uppercase">Vault Key</h3>
+            <p className="text-[#888] mb-4 text-sm">
+              Your vault key is only stored in memory and will be cleared when you close the tab.
+            </p>
+
+            <button
+              onClick={handleSignOut}
+              className="w-full px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

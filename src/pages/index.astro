@@ -1,59 +1,34 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { Logo } from '../components/ui/Logo';
-import { Background } from '../components/layout/Background';
 ---
 
 <Layout title="OpenLeaf - Encrypted Notes">
-  <main class="min-h-screen flex flex-col relative">
-    <Background client:load />
+  <main class="min-h-screen flex flex-col px-6 py-12 max-w-xl mx-auto">
+    <div class="flex-1 space-y-6">
+      <div class="text-2xl">🌿</div>
 
-    <div class="flex-1 flex flex-col items-center justify-center px-4 relative z-10">
-      <div class="max-w-md w-full text-center space-y-8">
-        <div class="flex justify-center">
-          <Logo size="lg" />
-        </div>
+      <h1 class="text-xl font-bold md-h1">OpenLeaf</h1>
 
-        <div class="space-y-2">
-          <p class="text-lg text-[#6B7280]">
-            End to end encrypted offline markdown notes.
-          </p>
-          <p class="text-sm font-medium text-black">
-            No AI. Privately yours.
-          </p>
-        </div>
+      <p>End to end encrypted offline markdown notes.</p>
 
-        <div class="space-y-3">
-          <a
-            href="/create"
-            class="block w-full px-6 py-3 bg-[#D1D5DB] hover:bg-[#9CA3AF] text-black font-medium rounded transition-colors"
-          >
-            Create new vault
-          </a>
-          <a
-            href="/signin"
-            class="block w-full px-6 py-3 text-[#DC2626] hover:bg-gray-100 font-medium rounded transition-colors"
-          >
-            Sign in to existing vault
-          </a>
-        </div>
+      <p>No AI. Privately yours.</p>
 
-        <p class="text-sm text-[#6B7280]">
-          100% free to use. No limits. No catch.
-        </p>
-
-        <div class="text-sm text-[#6B7280] text-left bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
-          <p>
-            Your notes are encrypted on your device before being stored.
-            Only you have the key to decrypt them. We never see your content,
-            and your encryption key never leaves your device.
-          </p>
-        </div>
+      <div class="space-y-2 pt-2">
+        <a href="/create" class="block">Create new vault</a>
+        <a href="/signin" class="block">Sign in to existing vault</a>
       </div>
+
+      <p class="pt-4">100% free to use. No limits. No catch.</p>
+
+      <p class="text-[#888]">
+        Your vault key never leaves your device or gets sent to the server –
+        it's only used to encrypt updates before they're sent, so no one except
+        you can read what you write.
+      </p>
     </div>
 
-    <footer class="text-center py-4 text-sm text-[#6B7280] relative z-10">
-      <p>Built with privacy in mind</p>
+    <footer class="pt-8 text-[#888]">
+      <p>Created by <a href="https://github.com/AVGVSTVS96" class="text-[#888]">@AVGVSTVS96</a></p>
     </footer>
   </main>
 </Layout>

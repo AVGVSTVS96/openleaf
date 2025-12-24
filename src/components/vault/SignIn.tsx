@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Button } from '../ui/Button';
-import { TextArea } from '../ui/TextArea';
 import { validateMnemonic, mnemonicToSeed } from '../../lib/mnemonic';
 import { deriveKey, verifyKey } from '../../lib/crypto';
 import { db } from '../../lib/db';
@@ -25,11 +23,8 @@ export function SignIn() {
     setError('');
 
     try {
-      // Derive encryption key from mnemonic
       const seed = await mnemonicToSeed(trimmedMnemonic);
       const key = await deriveKey(seed);
-
-      // Check if vault exists
       const vaults = await db.vault.toArray();
 
       if (vaults.length === 0) {
@@ -38,7 +33,6 @@ export function SignIn() {
         return;
       }
 
-      // Try to verify against stored vault
       let verified = false;
       for (const vault of vaults) {
         if (await verifyKey(vault.encryptedVerifier, key)) {
@@ -53,10 +47,7 @@ export function SignIn() {
         return;
       }
 
-      // Store key in memory
       setEncryptionKey(key);
-
-      // Redirect to notes
       window.location.href = '/notes';
     } catch (err) {
       console.error('Sign in failed:', err);
@@ -68,17 +59,14 @@ export function SignIn() {
 
   return (
     <form onSubmit={handleSignIn} className="space-y-6">
-      <div className="text-[#6B7280]">
-        <p>Enter your 12-word recovery phrase to access your vault.</p>
-      </div>
+      <p>Enter your 12-word recovery phrase to access your vault.</p>
 
-      <TextArea
-        label="Recovery phrase"
+      <textarea
         value={mnemonic}
         onChange={(e) => setMnemonic(e.target.value)}
-        placeholder="Enter your 12-word recovery phrase..."
-        rows={4}
-        className="font-mono"
+        placeholder="Enter your recovery phrase..."
+        rows={3}
+        className="w-full p-3 bg-transparent border border-[#ccc] focus:outline-none focus:border-[#888] resize-none"
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
@@ -86,18 +74,16 @@ export function SignIn() {
       />
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
-          {error}
-        </div>
+        <p className="text-red-600">{error}</p>
       )}
 
-      <Button
+      <button
         type="submit"
         disabled={isSigningIn || !mnemonic.trim()}
-        className="w-full"
+        className="px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] disabled:opacity-50 transition-colors"
       >
         {isSigningIn ? 'Signing in...' : 'Sign in'}
-      </Button>
+      </button>
     </form>
   );
 }
