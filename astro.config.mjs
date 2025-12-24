@@ -5,7 +5,6 @@ import AstroPWA from '@vite-pwa/astro';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  output: 'hybrid',
   adapter: vercel(),
   integrations: [
     react(),
