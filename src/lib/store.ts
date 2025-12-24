@@ -8,6 +8,9 @@ let currentVaultId: string | null = null;
 
 const SESSION_KEY = 'openleaf_pending_auth';
 
+// Helper to check if we're in the browser
+const isBrowser = typeof window !== 'undefined';
+
 export function setEncryptionKey(key: CryptoKey): void {
   encryptionKey = key;
 }
@@ -27,7 +30,9 @@ export function getCurrentVaultId(): string | null {
 export function clearEncryptionKey(): void {
   encryptionKey = null;
   currentVaultId = null;
-  sessionStorage.removeItem(SESSION_KEY);
+  if (isBrowser) {
+    sessionStorage.removeItem(SESSION_KEY);
+  }
 }
 
 export function isAuthenticated(): boolean {
@@ -36,12 +41,15 @@ export function isAuthenticated(): boolean {
 
 // Temporarily save auth state to survive page navigation
 export function saveAuthForNavigation(seed: Uint8Array, vaultId: string): void {
+  if (!isBrowser) return;
   const seedBase64 = btoa(String.fromCharCode(...seed));
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({ seed: seedBase64, vaultId }));
 }
 
 // Restore auth state after page navigation (returns true if restored)
 export async function restoreAuthFromNavigation(): Promise<boolean> {
+  if (!isBrowser) return false;
+
   const stored = sessionStorage.getItem(SESSION_KEY);
   if (!stored) return false;
 
