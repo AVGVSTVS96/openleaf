@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { TopBar } from '../../components/layout/TopBar';
+import { NoteEditor } from '../../components/notes/NoteEditor';
+
+const { id } = Astro.params;
+---
+
+<Layout title="Edit Note - OpenLeaf">
+  <div class="min-h-screen flex flex-col">
+    <TopBar showLogout client:load />
+
+    <main class="flex-1 py-6 px-4">
+      <div class="max-w-2xl mx-auto h-full">
+        <NoteEditor noteId={id!} client:load />
+      </div>
+    </main>
+  </div>
+</Layout>

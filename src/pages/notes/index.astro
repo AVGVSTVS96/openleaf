@@ -1,0 +1,18 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { TopBar } from '../../components/layout/TopBar';
+import { NoteList } from '../../components/notes/NoteList';
+---
+
+<Layout title="Notes - OpenLeaf">
+  <div class="min-h-screen flex flex-col">
+    <TopBar showLogout client:load />
+
+    <main class="flex-1 py-6 px-4">
+      <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Your notes</h1>
+        <NoteList client:load />
+      </div>
+    </main>
+  </div>
+</Layout>

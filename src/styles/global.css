@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #FAFAFA;
+  --color-primary: #000000;
+  --color-secondary: #6B7280;
+  --color-accent: #DC2626;
+  --color-button: #D1D5DB;
+  --color-button-hover: #9CA3AF;
+  --color-logo: #22C55E;
+
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, Consolas, 'Courier New', monospace;
+}
+
+html {
+  background-color: var(--color-background);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-primary);
+  min-height: 100vh;
+}
