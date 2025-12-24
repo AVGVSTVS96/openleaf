@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { User } from 'lucide-react';
 import { db } from '../../lib/db';
 import { decryptNoteData, encryptNoteData } from '../../lib/crypto';
-import { getEncryptionKey, getCurrentVaultId, isAuthenticated, clearEncryptionKey } from '../../lib/store';
+import { getEncryptionKey, getCurrentVaultId, clearEncryptionKey } from '../../lib/store';
 
 interface DecryptedNote {
   id: string;
@@ -11,18 +11,17 @@ interface DecryptedNote {
   updatedAt: number;
 }
 
-export function NoteList() {
+interface NoteListProps {
+  onNavigate?: (path: string) => void;
+}
+
+export function NoteList({ onNavigate }: NoteListProps) {
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showAccount, setShowAccount] = useState(false);
-  const [mnemonic, setMnemonic] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      window.location.href = '/signin';
-      return;
-    }
     loadNotes();
   }, []);
 
@@ -97,7 +96,11 @@ export function NoteList() {
         updatedAt: now
       });
 
-      window.location.href = `/notes/${id}`;
+      if (onNavigate) {
+        onNavigate(`/notes/${id}`);
+      } else {
+        window.location.href = `/notes/${id}`;
+      }
     } catch (err) {
       console.error('Failed to create note:', err);
     }
@@ -129,13 +132,19 @@ export function NoteList() {
           </p>
         ) : (
           filteredNotes.map((note) => (
-            <a
+            <button
               key={note.id}
-              href={`/notes/${note.id}`}
-              className="block"
+              onClick={() => {
+                if (onNavigate) {
+                  onNavigate(`/notes/${note.id}`);
+                } else {
+                  window.location.href = `/notes/${note.id}`;
+                }
+              }}
+              className="block text-left w-full hover:underline"
             >
               {note.title || 'Untitled'}
-            </a>
+            </button>
           ))
         )}
       </div>
