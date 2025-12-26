@@ -3,6 +3,11 @@ let bip39Module: typeof import('bip39') | null = null;
 
 async function getBip39() {
   if (!bip39Module) {
+    // Polyfill Buffer for browser environment (required by bip39)
+    if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
+      const { Buffer } = await import('buffer');
+      window.Buffer = Buffer;
+    }
     bip39Module = await import('bip39');
   }
   return bip39Module;
