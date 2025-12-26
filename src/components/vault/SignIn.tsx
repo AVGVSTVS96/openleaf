@@ -14,13 +14,15 @@ export function SignIn() {
 
     const trimmedMnemonic = mnemonic.trim().toLowerCase();
 
-    if (!validateMnemonic(trimmedMnemonic)) {
-      setError('Invalid recovery phrase. Please check and try again.');
-      return;
-    }
-
     setIsSigningIn(true);
     setError('');
+
+    const isValid = await validateMnemonic(trimmedMnemonic);
+    if (!isValid) {
+      setError('Invalid recovery phrase. Please check and try again.');
+      setIsSigningIn(false);
+      return;
+    }
 
     try {
       const seed = await mnemonicToSeed(trimmedMnemonic);

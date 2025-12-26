@@ -7,11 +7,18 @@ import { saveAuthForNavigation } from '../../lib/store';
 
 export function CreateVault() {
   const [mnemonic, setMnemonic] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    setMnemonic(generateMnemonic());
+    generateMnemonic()
+      .then(setMnemonic)
+      .catch((err) => {
+        console.error('Failed to generate mnemonic:', err);
+        setError('Failed to generate recovery phrase. Please refresh the page.');
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   async function handleCreateVault() {
@@ -41,6 +48,14 @@ export function CreateVault() {
     } finally {
       setIsCreating(false);
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <p className="text-[#888]">Generating recovery phrase...</p>
+      </div>
+    );
   }
 
   return (

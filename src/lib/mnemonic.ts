@@ -1,14 +1,25 @@
-import * as bip39 from 'bip39';
+// Use dynamic import to ensure bip39 only loads in browser environment
+let bip39Module: typeof import('bip39') | null = null;
 
-export function generateMnemonic(): string {
+async function getBip39() {
+  if (!bip39Module) {
+    bip39Module = await import('bip39');
+  }
+  return bip39Module;
+}
+
+export async function generateMnemonic(): Promise<string> {
+  const bip39 = await getBip39();
   return bip39.generateMnemonic();
 }
 
-export function validateMnemonic(mnemonic: string): boolean {
+export async function validateMnemonic(mnemonic: string): Promise<boolean> {
+  const bip39 = await getBip39();
   return bip39.validateMnemonic(mnemonic.trim().toLowerCase());
 }
 
 export async function mnemonicToSeed(mnemonic: string): Promise<Uint8Array> {
+  const bip39 = await getBip39();
   const seed = await bip39.mnemonicToSeed(mnemonic.trim().toLowerCase());
   return new Uint8Array(seed);
 }
