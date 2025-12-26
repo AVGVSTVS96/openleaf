@@ -8,8 +8,8 @@ export interface Vault {
 
 export interface Note {
   id: string;
-  encryptedTitle: string;
-  encryptedContent: string;
+  vaultId: string;
+  encryptedData: string; // JSON blob containing { title, content }
   iv: string;
   createdAt: number;
   updatedAt: number;
@@ -25,6 +25,12 @@ export class OpenLeafDB extends Dexie {
     this.version(1).stores({
       vault: 'id',
       notes: 'id, updatedAt'
+    });
+
+    // Add vaultId field to notes for multi-vault support
+    this.version(2).stores({
+      vault: 'id',
+      notes: 'id, vaultId, updatedAt'
     });
   }
 }

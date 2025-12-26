@@ -3,7 +3,7 @@ import { MnemonicDisplay } from './MnemonicDisplay';
 import { generateMnemonic, mnemonicToSeed } from '../../lib/mnemonic';
 import { deriveKey, createVerifier } from '../../lib/crypto';
 import { db } from '../../lib/db';
-import { setEncryptionKey } from '../../lib/store';
+import { saveAuthForNavigation } from '../../lib/store';
 
 export function CreateVault() {
   const [mnemonic, setMnemonic] = useState<string>('');
@@ -32,7 +32,8 @@ export function CreateVault() {
         createdAt: Date.now()
       });
 
-      setEncryptionKey(key);
+      // Save auth state to sessionStorage to survive page navigation
+      saveAuthForNavigation(seed, vaultId);
       window.location.href = '/notes';
     } catch (err) {
       console.error('Failed to create vault:', err);

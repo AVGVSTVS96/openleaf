@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { User } from 'lucide-react';
 import { db } from '../../lib/db';
-import { decrypt } from '../../lib/crypto';
-import { getEncryptionKey, isAuthenticated, clearEncryptionKey } from '../../lib/store';
+import { decryptNoteData, encryptNoteData } from '../../lib/crypto';
+import { getEncryptionKey, getCurrentVaultId, clearEncryptionKey } from '../../lib/store';
 
 interface DecryptedNote {
   id: string;
@@ -11,18 +11,17 @@ interface DecryptedNote {
   updatedAt: number;
 }
 
-export function NoteList() {
+interface NoteListProps {
+  onNavigate?: (path: string) => void;
+}
+
+export function NoteList({ onNavigate }: NoteListProps) {
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showAccount, setShowAccount] = useState(false);
-  const [mnemonic, setMnemonic] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      window.location.href = '/signin';
-      return;
-    }
     loadNotes();
   }, []);
 
@@ -30,22 +29,26 @@ export function NoteList() {
     setIsLoading(true);
     try {
       const key = getEncryptionKey();
-      if (!key) {
+      const vaultId = getCurrentVaultId();
+      if (!key || !vaultId) {
         window.location.href = '/signin';
         return;
       }
 
-      const encryptedNotes = await db.notes.orderBy('updatedAt').reverse().toArray();
+      const encryptedNotes = await db.notes
+        .where('vaultId')
+        .equals(vaultId)
+        .reverse()
+        .sortBy('updatedAt');
       const decryptedNotes: DecryptedNote[] = [];
 
       for (const note of encryptedNotes) {
         try {
-          const title = await decrypt(note.encryptedTitle, note.iv, key);
-          const content = await decrypt(note.encryptedContent, note.iv, key);
+          const noteData = await decryptNoteData(note.encryptedData, note.iv, key);
           decryptedNotes.push({
             id: note.id,
-            title: title || content.split('\n')[0] || 'Untitled',
-            content,
+            title: noteData.title || noteData.content.split('\n')[0] || 'Untitled',
+            content: noteData.content,
             updatedAt: note.updatedAt
           });
         } catch (err) {
@@ -73,7 +76,8 @@ export function NoteList() {
 
   async function handleCreateNote() {
     const key = getEncryptionKey();
-    if (!key) {
+    const vaultId = getCurrentVaultId();
+    if (!key || !vaultId) {
       window.location.href = '/signin';
       return;
     }
@@ -81,20 +85,22 @@ export function NoteList() {
     try {
       const id = crypto.randomUUID();
       const now = Date.now();
-      const { encrypt } = await import('../../lib/crypto');
-      const { ciphertext: encryptedTitle, iv } = await encrypt('', key);
-      const { ciphertext: encryptedContent } = await encrypt('', key);
+      const { encryptedData, iv } = await encryptNoteData({ title: '', content: '' }, key);
 
       await db.notes.add({
         id,
-        encryptedTitle,
-        encryptedContent,
+        vaultId,
+        encryptedData,
         iv,
         createdAt: now,
         updatedAt: now
       });
 
-      window.location.href = `/notes/${id}`;
+      if (onNavigate) {
+        onNavigate(`/notes/${id}`);
+      } else {
+        window.location.href = `/notes/${id}`;
+      }
     } catch (err) {
       console.error('Failed to create note:', err);
     }
@@ -126,13 +132,19 @@ export function NoteList() {
           </p>
         ) : (
           filteredNotes.map((note) => (
-            <a
+            <button
               key={note.id}
-              href={`/notes/${note.id}`}
-              className="block"
+              onClick={() => {
+                if (onNavigate) {
+                  onNavigate(`/notes/${note.id}`);
+                } else {
+                  window.location.href = `/notes/${note.id}`;
+                }
+              }}
+              className="block text-left w-full hover:underline"
             >
               {note.title || 'Untitled'}
-            </a>
+            </button>
           ))
         )}
       </div>

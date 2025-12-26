@@ -88,3 +88,20 @@ export async function verifyKey(encryptedVerifier: string, key: CryptoKey): Prom
     return false;
   }
 }
+
+// Note data types
+export interface NoteData {
+  title: string;
+  content: string;
+}
+
+export async function encryptNoteData(data: NoteData, key: CryptoKey): Promise<{ encryptedData: string; iv: string }> {
+  const plaintext = JSON.stringify(data);
+  const { ciphertext, iv } = await encrypt(plaintext, key);
+  return { encryptedData: ciphertext, iv };
+}
+
+export async function decryptNoteData(encryptedData: string, iv: string, key: CryptoKey): Promise<NoteData> {
+  const plaintext = await decrypt(encryptedData, iv, key);
+  return JSON.parse(plaintext) as NoteData;
+}
