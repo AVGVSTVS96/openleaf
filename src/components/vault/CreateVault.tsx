@@ -35,7 +35,8 @@ export function CreateVault() {
         setIsReady(true);
       } catch (err) {
         console.error('Failed to create vault:', err);
-        setError('Failed to create vault. Please refresh the page.');
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        setError(`Failed to create vault: ${message}`);
       } finally {
         setIsLoading(false);
       }
