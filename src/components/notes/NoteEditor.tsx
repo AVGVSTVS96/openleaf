@@ -16,8 +16,6 @@ export const NoteEditor = memo(function NoteEditor({ noteId, onNavigate }: NoteE
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>('');
 
-  
-
   useEffect(() => {
     loadNote();
 
@@ -33,7 +31,7 @@ export const NoteEditor = memo(function NoteEditor({ noteId, onNavigate }: NoteE
     try {
       const key = getEncryptionKey();
       if (!key) {
-        window.location.href = '/signin'; // Full reload for sign-in
+        window.location.href = '/signin';
         return;
       }
 
@@ -108,7 +106,7 @@ export const NoteEditor = memo(function NoteEditor({ noteId, onNavigate }: NoteE
   }
 
   if (isLoading) {
-    return <p className="text-gray-500">Loading...</p>;
+    return <p className="text-secondary">Loading...</p>;
   }
 
   return (
@@ -124,22 +122,22 @@ export const NoteEditor = memo(function NoteEditor({ noteId, onNavigate }: NoteE
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="p-3 bg-gray-50 border border-gray-300 hover:border-gray-500 transition-colors"
+          className="p-3 bg-background border border-secondary hover:border-primary transition-colors"
         >
           <Menu size={20} />
         </button>
 
         {showMenu && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-50 border border-gray-300 shadow-lg min-w-[150px]">
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-secondary shadow-lg min-w-[150px]">
             <button
               onClick={handleBack}
-              className="block w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
+              className="block w-full px-4 py-2 text-left hover:bg-button transition-colors"
             >
               ← Back to notes
             </button>
             <button
               onClick={handleDelete}
-              className="block w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100 transition-colors"
+              className="block w-full px-4 py-2 text-left text-accent hover:bg-button transition-colors"
             >
               Delete note
             </button>
