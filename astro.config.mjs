@@ -66,17 +66,6 @@ export default defineConfig({
     })
   ],
   vite: {
-    plugins: [tailwindcss()],
-    define: {
-      global: 'globalThis',
-    },
-    resolve: {
-      alias: {
-        buffer: 'buffer',
-      },
-    },
-    optimizeDeps: {
-      include: ['buffer'],
-    },
+    plugins: [tailwindcss()]
   }
 });
