@@ -7,40 +7,54 @@ import { saveAuthForNavigation } from '../../lib/store';
 
 export function CreateVault() {
   const [mnemonic, setMnemonic] = useState<string>('');
-  const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    setMnemonic(generateMnemonic());
+    async function createVault() {
+      try {
+        // Generate mnemonic
+        const newMnemonic = await generateMnemonic();
+        setMnemonic(newMnemonic);
+
+        // Create vault automatically
+        const seed = await mnemonicToSeed(newMnemonic);
+        const key = await deriveKey(seed);
+        const encryptedVerifier = await createVerifier(key);
+        const vaultId = await generateVaultId(newMnemonic);
+
+        await db.vault.put({
+          id: vaultId,
+          encryptedVerifier,
+          createdAt: Date.now()
+        });
+
+        // Save auth state for navigation
+        saveAuthForNavigation(seed, vaultId);
+        setIsReady(true);
+      } catch (err) {
+        console.error('Failed to create vault:', err);
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        setError(`Failed to create vault: ${message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    createVault();
   }, []);
 
-  async function handleCreateVault() {
-    if (!mnemonic) return;
+  function handleCreateNote() {
+    window.location.href = '/notes';
+  }
 
-    setIsCreating(true);
-    setError('');
-
-    try {
-      const seed = await mnemonicToSeed(mnemonic);
-      const key = await deriveKey(seed);
-      const encryptedVerifier = await createVerifier(key);
-      const vaultId = await generateVaultId(mnemonic);
-
-      await db.vault.put({
-        id: vaultId,
-        encryptedVerifier,
-        createdAt: Date.now()
-      });
-
-      // Save auth state to sessionStorage to survive page navigation
-      saveAuthForNavigation(seed, vaultId);
-      window.location.href = '/notes';
-    } catch (err) {
-      console.error('Failed to create vault:', err);
-      setError('Failed to create vault. Please try again.');
-    } finally {
-      setIsCreating(false);
-    }
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <p className="text-[#888]">Creating your vault...</p>
+      </div>
+    );
   }
 
   return (
@@ -62,11 +76,11 @@ export function CreateVault() {
       )}
 
       <button
-        onClick={handleCreateVault}
-        disabled={isCreating || !mnemonic}
+        onClick={handleCreateNote}
+        disabled={!isReady}
         className="px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] disabled:opacity-50 transition-colors"
       >
-        {isCreating ? 'Creating...' : 'Create vault'}
+        Create new note
       </button>
     </div>
   );
