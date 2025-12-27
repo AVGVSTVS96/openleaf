@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { Menu } from 'lucide-react';
 import { db } from '../../lib/db';
 import { encryptNoteData, decryptNoteData } from '../../lib/crypto';
@@ -9,20 +9,14 @@ interface NoteEditorProps {
   onNavigate?: (path: string) => void;
 }
 
-export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
+export const NoteEditor = memo(function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>('');
 
-  const navigate = (path: string) => {
-    if (onNavigate) {
-      onNavigate(path);
-    } else {
-      window.location.href = path;
-    }
-  };
+  
 
   useEffect(() => {
     loadNote();
@@ -45,7 +39,7 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
 
       const note = await db.notes.get(noteId);
       if (!note) {
-        navigate('/notes');
+        onNavigate?.('/notes');
         return;
       }
 
@@ -100,7 +94,7 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
 
     try {
       await db.notes.delete(noteId);
-      navigate('/notes');
+      onNavigate?.('/notes');
     } catch (err) {
       console.error('Failed to delete note:', err);
     }
@@ -110,7 +104,7 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
     if (content !== lastSavedContentRef.current) {
       saveNote(content);
     }
-    navigate('/notes');
+    onNavigate?.('/notes');
   }
 
   if (isLoading) {
@@ -154,4 +148,4 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
       </div>
     </div>
   );
-}
+});

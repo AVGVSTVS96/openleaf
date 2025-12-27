@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { User } from 'lucide-react';
 import { db } from '../../lib/db';
 import { decryptNoteData, encryptNoteData } from '../../lib/crypto';
@@ -15,7 +15,7 @@ interface NoteListProps {
   onNavigate?: (path: string) => void;
 }
 
-export function NoteList({ onNavigate }: NoteListProps) {
+export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -96,11 +96,7 @@ export function NoteList({ onNavigate }: NoteListProps) {
         updatedAt: now
       });
 
-      if (onNavigate) {
-        onNavigate(`/notes/${id}`);
-      } else {
-        window.location.href = `/notes/${id}`;
-      }
+      onNavigate?.(`/notes/${id}`);
     } catch (err) {
       console.error('Failed to create note:', err);
     }
@@ -134,13 +130,7 @@ export function NoteList({ onNavigate }: NoteListProps) {
           filteredNotes.map((note) => (
             <button
               key={note.id}
-              onClick={() => {
-                if (onNavigate) {
-                  onNavigate(`/notes/${note.id}`);
-                } else {
-                  window.location.href = `/notes/${note.id}`;
-                }
-              }}
+              onClick={() => onNavigate?.(`/notes/${note.id}`)}
               className="block text-left w-full hover:underline"
             >
               {note.title || 'Untitled'}
@@ -194,4 +184,4 @@ export function NoteList({ onNavigate }: NoteListProps) {
       )}
     </div>
   );
-}
+});

@@ -1,5 +1,6 @@
-const PBKDF2_ITERATIONS = 100000;
-const SALT = 'openleaf-v1'; // Static salt since mnemonic provides entropy
+export const PBKDF2_ITERATIONS = 100000;
+export const SALT = 'openleaf-v1'; // Static salt since mnemonic provides entropy
+export const VERIFIER_PLAINTEXT = 'openleaf-verified';
 
 export async function deriveKey(seed: Uint8Array): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
@@ -71,8 +72,7 @@ function base64ToBuffer(base64: string): Uint8Array {
   return bytes;
 }
 
-// Known value to verify correct key during sign-in
-const VERIFIER_PLAINTEXT = 'openleaf-verified';
+
 
 export async function createVerifier(key: CryptoKey): Promise<string> {
   const { ciphertext, iv } = await encrypt(VERIFIER_PLAINTEXT, key);
