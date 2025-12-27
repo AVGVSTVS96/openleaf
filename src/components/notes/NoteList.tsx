@@ -112,7 +112,7 @@ export function NoteList({ onNavigate }: NoteListProps) {
   }
 
   if (isLoading) {
-    return <p className="text-[#888]">Loading...</p>;
+    return <p className="text-gray-500">Loading...</p>;
   }
 
   return (
@@ -122,12 +122,12 @@ export function NoteList({ onNavigate }: NoteListProps) {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder="Search notes"
-        className="w-full p-3 bg-transparent border border-[#ccc] focus:outline-none focus:border-[#888]"
+        className="w-full p-3 bg-transparent border border-gray-300 focus:outline-none focus:border-gray-500"
       />
 
       <div className="space-y-2">
         {filteredNotes.length === 0 ? (
-          <p className="text-[#888]">
+          <p className="text-gray-500">
             {searchQuery ? 'No notes found.' : 'No notes yet.'}
           </p>
         ) : (
@@ -152,14 +152,14 @@ export function NoteList({ onNavigate }: NoteListProps) {
       <div className="flex items-center gap-4 pt-4">
         <button
           onClick={handleCreateNote}
-          className="px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] transition-colors"
+          className="px-6 py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
         >
           Create note
         </button>
 
         <button
           onClick={() => setShowAccount(!showAccount)}
-          className="p-2 rounded-full border border-[#ccc] hover:border-[#888] transition-colors"
+          className="p-2 rounded-full border border-gray-300 hover:border-gray-500 transition-colors"
         >
           <User size={20} />
         </button>
@@ -167,25 +167,25 @@ export function NoteList({ onNavigate }: NoteListProps) {
 
       {showAccount && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#FAF8F5] p-6 max-w-md w-full shadow-lg relative">
+          <div className="bg-gray-50 p-6 max-w-md w-full shadow-lg relative">
             <button
               onClick={() => setShowAccount(false)}
-              className="absolute top-4 right-4 text-[#888] hover:text-black"
+              className="absolute top-4 right-4 text-gray-500 hover:text-black"
             >
               ✕
             </button>
 
             <h2 className="text-lg font-bold mb-2 md-h2">Account</h2>
-            <p className="text-[#888] mb-4">Manage your vault access.</p>
+            <p className="text-gray-500 mb-4">Manage your vault access.</p>
 
             <h3 className="text-sm font-bold mb-2 md-h3 uppercase">Vault Key</h3>
-            <p className="text-[#888] mb-4 text-sm">
+            <p className="text-gray-500 mb-4 text-sm">
               Your vault key is only stored in memory and will be cleared when you close the tab.
             </p>
 
             <button
               onClick={handleSignOut}
-              className="w-full px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] transition-colors"
+              className="w-full px-6 py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               Sign out
             </button>

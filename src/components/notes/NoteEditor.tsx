@@ -114,7 +114,7 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
   }
 
   if (isLoading) {
-    return <p className="text-[#888]">Loading...</p>;
+    return <p className="text-gray-500">Loading...</p>;
   }
 
   return (
@@ -130,22 +130,22 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="p-3 bg-[#FAF8F5] border border-[#ccc] hover:border-[#888] transition-colors"
+          className="p-3 bg-gray-50 border border-gray-300 hover:border-gray-500 transition-colors"
         >
           <Menu size={20} />
         </button>
 
         {showMenu && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#FAF8F5] border border-[#ccc] shadow-lg min-w-[150px]">
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-50 border border-gray-300 shadow-lg min-w-[150px]">
             <button
               onClick={handleBack}
-              className="block w-full px-4 py-2 text-left hover:bg-[#E8E4DF] transition-colors"
+              className="block w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
             >
               ← Back to notes
             </button>
             <button
               onClick={handleDelete}
-              className="block w-full px-4 py-2 text-left text-red-600 hover:bg-[#E8E4DF] transition-colors"
+              className="block w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100 transition-colors"
             >
               Delete note
             </button>

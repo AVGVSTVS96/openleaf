@@ -58,7 +58,7 @@ export function NotesApp() {
   };
 
   if (isInitializing) {
-    return <p className="text-[#888]">Loading...</p>;
+    return <p className="text-gray-500">Loading...</p>;
   }
 
   if (view.type === 'edit') {
