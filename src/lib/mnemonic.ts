@@ -23,7 +23,7 @@ export async function validateMnemonic(mnemonic: string): Promise<boolean> {
   return bip39.validateMnemonic(mnemonic.trim().toLowerCase());
 }
 
-export async function mnemonicToSeed(mnemonic: string): Promise<Uint8Array> {
+export async function mnemonicToSeed(mnemonic: string): Promise<Uint8Array<ArrayBuffer>> {
   const bip39 = await getBip39();
   const seed = await bip39.mnemonicToSeed(mnemonic.trim().toLowerCase());
   return new Uint8Array(seed);

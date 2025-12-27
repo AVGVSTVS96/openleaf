@@ -128,7 +128,7 @@ export const NoteEditor = memo(function NoteEditor({ noteId, onNavigate }: NoteE
         </button>
 
         {showMenu && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-secondary shadow-lg min-w-[150px]">
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-secondary shadow-lg min-w-37.5">
             <button
               onClick={handleBack}
               className="block w-full px-4 py-2 text-left hover:bg-button transition-colors"

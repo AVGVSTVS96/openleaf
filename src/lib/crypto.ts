@@ -2,7 +2,7 @@ export const PBKDF2_ITERATIONS = 100000;
 export const SALT = 'openleaf-v1'; // Static salt since mnemonic provides entropy
 export const VERIFIER_PLAINTEXT = 'openleaf-verified';
 
-export async function deriveKey(seed: Uint8Array): Promise<CryptoKey> {
+export async function deriveKey(seed: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     seed,
@@ -63,7 +63,7 @@ function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   return btoa(binary);
 }
 
-function base64ToBuffer(base64: string): Uint8Array {
+function base64ToBuffer(base64: string): Uint8Array<ArrayBuffer> {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
