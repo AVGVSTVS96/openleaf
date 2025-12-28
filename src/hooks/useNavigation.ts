@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { View } from "./types";
+import type { View } from "../lib/types";
 
 export function useNavigation() {
   const navigate = useCallback((view: View) => {

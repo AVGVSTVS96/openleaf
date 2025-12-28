@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigation } from "../../hooks/useNavigation";
 import { isAuthenticated, restoreAuthFromNavigation } from "../../lib/store";
 import type { View } from "../../lib/types";
-import { useNavigation } from "../../lib/use-navigation";
 import { NoteEditor } from "./NoteEditor";
 import { NoteList } from "./NoteList";
 
