@@ -3,6 +3,7 @@ import { createVerifier, deriveKey, generateVaultId } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { generateMnemonic, mnemonicToSeed } from "../../lib/mnemonic";
 import { saveAuthForNavigation } from "../../lib/store";
+import { Button } from "../ui/button";
 import { MnemonicDisplay } from "./MnemonicDisplay";
 
 export function CreateVault() {
@@ -71,16 +72,11 @@ export function CreateVault() {
 
       {mnemonic && <MnemonicDisplay mnemonic={mnemonic} />}
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-destructive">{error}</p>}
 
-      <button
-        className="bg-button px-6 py-2 transition-colors hover:bg-button-hover disabled:opacity-50"
-        disabled={!isReady}
-        onClick={handleCreateNote}
-        type="button"
-      >
+      <Button disabled={!isReady} onClick={handleCreateNote}>
         Create new note
-      </button>
+      </Button>
     </div>
   );
 }

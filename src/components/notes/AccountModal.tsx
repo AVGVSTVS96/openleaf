@@ -1,42 +1,48 @@
 import { memo } from "react";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 
 interface AccountModalProps {
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSignOut: () => void;
 }
 
 export const AccountModal = memo(function AccountModal({
-  onClose,
+  open,
+  onOpenChange,
   onSignOut,
 }: AccountModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4">
-      <div className="relative w-full max-w-md bg-background p-6 shadow-lg">
-        <button
-          className="absolute top-4 right-4 text-secondary hover:text-primary"
-          onClick={onClose}
-          type="button"
-        >
-          ✕
-        </button>
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="md-h2 text-lg">Account</DialogTitle>
+          <DialogDescription>Manage your vault access.</DialogDescription>
+        </DialogHeader>
 
-        <h2 className="md-h2 mb-2 font-bold text-lg">Account</h2>
-        <p className="mb-4 text-secondary">Manage your vault access.</p>
+        <div className="space-y-4">
+          <div>
+            <h3 className="md-h3 mb-2 font-bold text-sm uppercase">
+              Vault Key
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              Your vault key is only stored in memory and will be cleared when
+              you close the tab.
+            </p>
+          </div>
 
-        <h3 className="md-h3 mb-2 font-bold text-sm uppercase">Vault Key</h3>
-        <p className="mb-4 text-secondary text-sm">
-          Your vault key is only stored in memory and will be cleared when you
-          close the tab.
-        </p>
-
-        <button
-          className="w-full bg-button px-6 py-2 transition-colors hover:bg-button-hover"
-          onClick={onSignOut}
-          type="button"
-        >
-          Sign out
-        </button>
-      </div>
-    </div>
+          <Button className="w-full" onClick={onSignOut}>
+            Sign out
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 });

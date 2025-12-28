@@ -8,6 +8,8 @@ import {
   getEncryptionKey,
 } from "../../lib/store";
 import type { DecryptedNote } from "../../lib/types";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { AccountModal } from "./AccountModal";
 
 interface NoteListProps {
@@ -122,8 +124,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
 
   return (
     <div className="flex-1 space-y-6">
-      <input
-        className="w-full border border-secondary bg-transparent p-3 focus:border-primary focus:outline-none"
+      <Input
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder="Search notes"
         type="text"
@@ -150,29 +151,23 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
       </div>
 
       <div className="flex items-center gap-4 pt-4">
-        <button
-          className="bg-button px-6 py-2 transition-colors hover:bg-button-hover"
-          onClick={handleCreateNote}
-          type="button"
-        >
-          Create note
-        </button>
+        <Button onClick={handleCreateNote}>Create note</Button>
 
-        <button
-          className="rounded-full border border-secondary p-2 transition-colors hover:border-primary"
+        <Button
+          className="rounded-full"
           onClick={() => setShowAccount(!showAccount)}
-          type="button"
+          size="icon"
+          variant="outline"
         >
           <User size={20} />
-        </button>
+        </Button>
       </div>
 
-      {showAccount && (
-        <AccountModal
-          onClose={() => setShowAccount(false)}
-          onSignOut={handleSignOut}
-        />
-      )}
+      <AccountModal
+        onOpenChange={setShowAccount}
+        onSignOut={handleSignOut}
+        open={showAccount}
+      />
     </div>
   );
 });

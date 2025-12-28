@@ -1,9 +1,26 @@
-import { Menu } from "lucide-react";
+import { ArrowLeft, Menu, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { AUTOSAVE_DELAY_MS } from "../../lib/constants";
 import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { getEncryptionKey } from "../../lib/store";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
+import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 // Regex for extracting title from markdown heading
 const TITLE_REGEX = /^#\s*/;
@@ -19,7 +36,7 @@ export const NoteEditor = memo(function NoteEditor({
 }: NoteEditorProps) {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>("");
 
@@ -105,10 +122,6 @@ export const NoteEditor = memo(function NoteEditor({
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this note?")) {
-      return;
-    }
-
     try {
       await db.notes.delete(noteId);
       onNavigate?.("/notes");
@@ -139,33 +152,45 @@ export const NoteEditor = memo(function NoteEditor({
       />
 
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
-        <button
-          className="border border-secondary bg-background p-3 transition-colors hover:border-primary"
-          onClick={() => setShowMenu(!showMenu)}
-          type="button"
-        >
-          <Menu size={20} />
-        </button>
-
-        {showMenu && (
-          <div className="absolute bottom-full left-1/2 mb-2 min-w-37.5 -translate-x-1/2 border border-secondary bg-background shadow-lg">
-            <button
-              className="block w-full px-4 py-2 text-left transition-colors hover:bg-button"
-              onClick={handleBack}
-              type="button"
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button size="icon" variant="outline" />}
+          >
+            <Menu size={20} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" side="top">
+            <DropdownMenuItem onClick={handleBack}>
+              <ArrowLeft size={16} />
+              Back to notes
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setShowDeleteDialog(true)}
+              variant="destructive"
             >
-              ← Back to notes
-            </button>
-            <button
-              className="block w-full px-4 py-2 text-left text-accent transition-colors hover:bg-button"
-              onClick={handleDelete}
-              type="button"
-            >
+              <Trash2 size={16} />
               Delete note
-            </button>
-          </div>
-        )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <AlertDialog onOpenChange={setShowDeleteDialog} open={showDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete note?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This note will be permanently
+              deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} variant="destructive">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 });
