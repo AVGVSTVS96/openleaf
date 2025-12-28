@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
-import { NoteList } from './NoteList';
-import { NoteEditor } from './NoteEditor';
-import { isAuthenticated, restoreAuthFromNavigation } from '../../lib/store';
-
-type View =
-  | { type: 'list' }
-  | { type: 'edit'; noteId: string };
+import { useEffect, useState } from "react";
+import { useNavigation } from "../../hooks/useNavigation";
+import { isAuthenticated, restoreAuthFromNavigation } from "../../lib/store";
+import type { View } from "../../lib/types";
+import { NoteEditor } from "./NoteEditor";
+import { NoteList } from "./NoteList";
 
 export function NotesApp() {
-  const [view, setView] = useState<View>({ type: 'list' });
+  const [view, setView] = useState<View>({ type: "list" });
   const [isInitializing, setIsInitializing] = useState(true);
+  const { navigate, getCurrentView, handlePopState } = useNavigation();
 
   useEffect(() => {
     async function initialize() {
@@ -20,56 +19,42 @@ export function NotesApp() {
 
       // If still not authenticated, redirect to sign in
       if (!isAuthenticated()) {
-        window.location.href = '/signin';
+        window.location.href = "/signin";
         return;
       }
 
       // Handle initial route from URL
-      const path = window.location.pathname;
-      const match = path.match(/^\/notes\/([^/]+)$/);
-      if (match) {
-        setView({ type: 'edit', noteId: match[1] });
-      }
-
+      setView(getCurrentView());
       setIsInitializing(false);
     }
 
     initialize();
 
     // Handle browser back/forward
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      const match = path.match(/^\/notes\/([^/]+)$/);
-      if (match) {
-        setView({ type: 'edit', noteId: match[1] });
-      } else {
-        setView({ type: 'list' });
-      }
-    };
+    return handlePopState(setView);
+  }, [getCurrentView, handlePopState]);
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const navigate = (newView: View) => {
-    const url = newView.type === 'list' ? '/notes' : `/notes/${newView.noteId}`;
-    window.history.pushState({}, '', url);
+  const handleNavigate = (newView: View) => {
+    navigate(newView);
     setView(newView);
   };
 
   if (isInitializing) {
-    return <p className="text-[#888]">Loading...</p>;
+    return <p className="text-gray-500">Loading...</p>;
   }
 
-  if (view.type === 'edit') {
+  if (view.type === "edit") {
     return (
       <NoteEditor
         noteId={view.noteId}
         onNavigate={(path) => {
-          if (path === '/notes') {
-            navigate({ type: 'list' });
-          } else if (path.startsWith('/notes/')) {
-            navigate({ type: 'edit', noteId: path.replace('/notes/', '') });
+          if (path === "/notes") {
+            handleNavigate({ type: "list" });
+          } else if (path.startsWith("/notes/")) {
+            handleNavigate({
+              type: "edit",
+              noteId: path.replace("/notes/", ""),
+            });
           }
         }}
       />
@@ -79,8 +64,8 @@ export function NotesApp() {
   return (
     <NoteList
       onNavigate={(path) => {
-        if (path.startsWith('/notes/')) {
-          navigate({ type: 'edit', noteId: path.replace('/notes/', '') });
+        if (path.startsWith("/notes/")) {
+          handleNavigate({ type: "edit", noteId: path.replace("/notes/", "") });
         }
       }}
     />

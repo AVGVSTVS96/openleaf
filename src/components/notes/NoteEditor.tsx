@@ -1,28 +1,52 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Menu } from 'lucide-react';
-import { db } from '../../lib/db';
-import { encryptNoteData, decryptNoteData } from '../../lib/crypto';
-import { getEncryptionKey } from '../../lib/store';
+import { Menu } from "lucide-react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { AUTOSAVE_DELAY_MS } from "../../lib/constants";
+import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
+import { db } from "../../lib/db";
+import { getEncryptionKey } from "../../lib/store";
+
+// Regex for extracting title from markdown heading
+const TITLE_REGEX = /^#\s*/;
 
 interface NoteEditorProps {
   noteId: string;
   onNavigate?: (path: string) => void;
 }
 
-export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
-  const [content, setContent] = useState('');
+export const NoteEditor = memo(function NoteEditor({
+  noteId,
+  onNavigate,
+}: NoteEditorProps) {
+  const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const saveTimeoutRef = useRef<number | null>(null);
-  const lastSavedContentRef = useRef<string>('');
+  const lastSavedContentRef = useRef<string>("");
 
-  const navigate = (path: string) => {
-    if (onNavigate) {
-      onNavigate(path);
-    } else {
-      window.location.href = path;
+  const loadNote = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const key = getEncryptionKey();
+      if (!key) {
+        window.location.href = "/signin";
+        return;
+      }
+
+      const note = await db.notes.get(noteId);
+      if (!note) {
+        onNavigate?.("/notes");
+        return;
+      }
+
+      const noteData = await decryptNoteData(note.encryptedData, note.iv, key);
+      setContent(noteData.content);
+      lastSavedContentRef.current = noteData.content;
+    } catch (err) {
+      console.error("Failed to load note:", err);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [noteId, onNavigate]);
 
   useEffect(() => {
     loadNote();
@@ -32,56 +56,41 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [noteId]);
+  }, [loadNote]);
 
-  async function loadNote() {
-    setIsLoading(true);
-    try {
+  const saveNote = useCallback(
+    async (newContent: string) => {
+      if (newContent === lastSavedContentRef.current) {
+        return;
+      }
+
       const key = getEncryptionKey();
       if (!key) {
-        window.location.href = '/signin'; // Full reload for sign-in
         return;
       }
 
-      const note = await db.notes.get(noteId);
-      if (!note) {
-        navigate('/notes');
-        return;
+      try {
+        const lines = newContent.split("\n");
+        const title = lines[0]?.replace(TITLE_REGEX, "").trim() || "";
+
+        const { encryptedData, iv } = await encryptNoteData(
+          { title, content: newContent },
+          key
+        );
+
+        await db.notes.update(noteId, {
+          encryptedData,
+          iv,
+          updatedAt: Date.now(),
+        });
+
+        lastSavedContentRef.current = newContent;
+      } catch (err) {
+        console.error("Failed to save note:", err);
       }
-
-      const noteData = await decryptNoteData(note.encryptedData, note.iv, key);
-      setContent(noteData.content);
-      lastSavedContentRef.current = noteData.content;
-    } catch (err) {
-      console.error('Failed to load note:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  const saveNote = useCallback(async (newContent: string) => {
-    if (newContent === lastSavedContentRef.current) return;
-
-    const key = getEncryptionKey();
-    if (!key) return;
-
-    try {
-      const lines = newContent.split('\n');
-      const title = lines[0]?.replace(/^#\s*/, '').trim() || '';
-
-      const { encryptedData, iv } = await encryptNoteData({ title, content: newContent }, key);
-
-      await db.notes.update(noteId, {
-        encryptedData,
-        iv,
-        updatedAt: Date.now()
-      });
-
-      lastSavedContentRef.current = newContent;
-    } catch (err) {
-      console.error('Failed to save note:', err);
-    }
-  }, [noteId]);
+    },
+    [noteId]
+  );
 
   function handleContentChange(newContent: string) {
     setContent(newContent);
@@ -92,17 +101,19 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
 
     saveTimeoutRef.current = window.setTimeout(() => {
       saveNote(newContent);
-    }, 500);
+    }, AUTOSAVE_DELAY_MS);
   }
 
   async function handleDelete() {
-    if (!confirm('Delete this note?')) return;
+    if (!confirm("Delete this note?")) {
+      return;
+    }
 
     try {
       await db.notes.delete(noteId);
-      navigate('/notes');
+      onNavigate?.("/notes");
     } catch (err) {
-      console.error('Failed to delete note:', err);
+      console.error("Failed to delete note:", err);
     }
   }
 
@@ -110,42 +121,45 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
     if (content !== lastSavedContentRef.current) {
       saveNote(content);
     }
-    navigate('/notes');
+    onNavigate?.("/notes");
   }
 
   if (isLoading) {
-    return <p className="text-[#888]">Loading...</p>;
+    return <p className="text-secondary">Loading...</p>;
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-[calc(100vh-6rem)]">
+    <div className="flex min-h-[calc(100vh-6rem)] flex-1 flex-col">
       <textarea
-        value={content}
-        onChange={(e) => handleContentChange(e.target.value)}
-        className="flex-1 w-full bg-transparent resize-none focus:outline-none"
-        placeholder="Start writing..."
         autoFocus
+        className="w-full flex-1 resize-none bg-transparent focus:outline-none"
+        onChange={(e) => handleContentChange(e.target.value)}
+        placeholder="Start writing..."
+        value={content}
       />
 
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
         <button
+          className="border border-secondary bg-background p-3 transition-colors hover:border-primary"
           onClick={() => setShowMenu(!showMenu)}
-          className="p-3 bg-[#FAF8F5] border border-[#ccc] hover:border-[#888] transition-colors"
+          type="button"
         >
           <Menu size={20} />
         </button>
 
         {showMenu && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#FAF8F5] border border-[#ccc] shadow-lg min-w-[150px]">
+          <div className="absolute bottom-full left-1/2 mb-2 min-w-37.5 -translate-x-1/2 border border-secondary bg-background shadow-lg">
             <button
+              className="block w-full px-4 py-2 text-left transition-colors hover:bg-button"
               onClick={handleBack}
-              className="block w-full px-4 py-2 text-left hover:bg-[#E8E4DF] transition-colors"
+              type="button"
             >
               ← Back to notes
             </button>
             <button
+              className="block w-full px-4 py-2 text-left text-accent transition-colors hover:bg-button"
               onClick={handleDelete}
-              className="block w-full px-4 py-2 text-left text-red-600 hover:bg-[#E8E4DF] transition-colors"
+              type="button"
             >
               Delete note
             </button>
@@ -154,4 +168,4 @@ export function NoteEditor({ noteId, onNavigate }: NoteEditorProps) {
       </div>
     </div>
   );
-}
+});

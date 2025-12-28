@@ -1,18 +1,18 @@
-import sharp from 'sharp';
-import { readFileSync, mkdirSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const publicDir = join(__dirname, '..', 'public');
+const publicDir = join(__dirname, "..", "public");
 
 // Read the SVG and add a background for the icon
-const svgContent = readFileSync(join(publicDir, 'favicon.svg'), 'utf-8');
+const _svgContent = readFileSync(join(publicDir, "favicon.svg"), "utf-8");
 
 // Create a version with padding and background for PWA icons
 const createIconSvg = (size) => {
   const padding = Math.floor(size * 0.15);
-  const iconSize = size - (padding * 2);
+  const iconSize = size - padding * 2;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
     <rect width="${size}" height="${size}" fill="#FAFAFA"/>
@@ -33,4 +33,4 @@ for (const size of sizes) {
   console.log(`Generated icon-${size}.png`);
 }
 
-console.log('Done!');
+console.log("Done!");
