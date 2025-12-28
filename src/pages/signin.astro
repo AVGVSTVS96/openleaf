@@ -5,16 +5,14 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="Sign In - OpenLeaf">
-  <main class="min-h-screen flex flex-col px-6 py-12 max-w-xl mx-auto">
-    <header class="mb-8">
-      <a href="/" class="text-secondary no-underline hover:text-primary">← Back</a>
-    </header>
+  <header class="mb-8">
+    <a href="/" class="text-secondary no-underline hover:text-primary">← Back</a>
+  </header>
 
-    <div class="flex-1">
-      <h1 class="text-xl font-bold mb-6 md-h1">Sign in</h1>
-      <SignIn client:load />
-    </div>
+  <div class="flex-1">
+    <h1 class="text-xl font-bold mb-6 md-h1">Sign in</h1>
+    <SignIn client:load />
+  </div>
 
-    <Footer />
-  </main>
+  <Footer />
 </Layout>

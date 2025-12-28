@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ROUTES } from "../../lib/constants";
 import { createVerifier, deriveKey, generateVaultId } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { generateMnemonic, mnemonicToSeed } from "../../lib/mnemonic";
@@ -47,7 +48,7 @@ export function CreateVault() {
   }, []);
 
   function handleCreateNote() {
-    window.location.href = "/notes";
+    window.location.href = ROUTES.NOTES;
   }
 
   if (isLoading) {

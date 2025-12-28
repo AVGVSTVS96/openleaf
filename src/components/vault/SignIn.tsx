@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ROUTES } from "../../lib/constants";
 import { deriveKey, verifyKey } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { mnemonicToSeed, validateMnemonic } from "../../lib/mnemonic";
@@ -53,7 +54,7 @@ export function SignIn() {
 
       // Save auth state to sessionStorage to survive page navigation
       saveAuthForNavigation(seed, matchedVaultId);
-      window.location.href = "/notes";
+      window.location.href = ROUTES.NOTES;
     } catch (err) {
       console.error("Sign in failed:", err);
       setError("Sign in failed. Please try again.");
