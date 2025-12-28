@@ -68,8 +68,8 @@ export async function restoreAuthFromNavigation(): Promise<boolean> {
     const { deriveKey } = await import("./crypto");
     const key = await deriveKey(seedBytes);
 
-    encryptionKey = key;
-    currentVaultId = vaultId;
+    setEncryptionKey(key);
+    setCurrentVaultId(vaultId);
     sessionStorage.removeItem(SESSION_KEY);
     return true;
   } catch (err) {
