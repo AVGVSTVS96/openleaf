@@ -1,9 +1,9 @@
 import { ArrowLeft, Menu, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { AUTOSAVE_DELAY_MS } from "../../lib/constants";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
+import { AUTOSAVE_DELAY_MS, ROUTES } from "../../lib/constants";
 import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
 import { db } from "../../lib/db";
-import { getEncryptionKey } from "../../lib/store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +34,7 @@ export const NoteEditor = memo(function NoteEditor({
   noteId,
   onNavigate,
 }: NoteEditorProps) {
+  const { isLoading: isAuthLoading, key } = useRequireAuth();
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -41,17 +42,15 @@ export const NoteEditor = memo(function NoteEditor({
   const lastSavedContentRef = useRef<string>("");
 
   const loadNote = useCallback(async () => {
+    if (!key) {
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const key = getEncryptionKey();
-      if (!key) {
-        window.location.href = "/signin";
-        return;
-      }
-
       const note = await db.notes.get(noteId);
       if (!note) {
-        onNavigate?.("/notes");
+        onNavigate?.(ROUTES.NOTES);
         return;
       }
 
@@ -63,17 +62,19 @@ export const NoteEditor = memo(function NoteEditor({
     } finally {
       setIsLoading(false);
     }
-  }, [noteId, onNavigate]);
+  }, [noteId, onNavigate, key]);
 
   useEffect(() => {
-    loadNote();
+    if (!isAuthLoading && key) {
+      loadNote();
+    }
 
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [loadNote]);
+  }, [isAuthLoading, key, loadNote]);
 
   const saveNote = useCallback(
     async (newContent: string) => {
@@ -81,7 +82,6 @@ export const NoteEditor = memo(function NoteEditor({
         return;
       }
 
-      const key = getEncryptionKey();
       if (!key) {
         return;
       }
@@ -106,7 +106,7 @@ export const NoteEditor = memo(function NoteEditor({
         console.error("Failed to save note:", err);
       }
     },
-    [noteId]
+    [noteId, key]
   );
 
   function handleContentChange(newContent: string) {
@@ -124,7 +124,7 @@ export const NoteEditor = memo(function NoteEditor({
   async function handleDelete() {
     try {
       await db.notes.delete(noteId);
-      onNavigate?.("/notes");
+      onNavigate?.(ROUTES.NOTES);
     } catch (err) {
       console.error("Failed to delete note:", err);
     }
@@ -134,15 +134,15 @@ export const NoteEditor = memo(function NoteEditor({
     if (content !== lastSavedContentRef.current) {
       saveNote(content);
     }
-    onNavigate?.("/notes");
+    onNavigate?.(ROUTES.NOTES);
   }
 
   if (isLoading) {
-    return <p className="text-secondary">Loading...</p>;
+    return <p className="flex-1 text-secondary">Loading...</p>;
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-6rem)] flex-1 flex-col">
+    <div className="flex flex-1 flex-col">
       <textarea
         autoFocus
         className="w-full flex-1 resize-none bg-transparent focus:outline-none"

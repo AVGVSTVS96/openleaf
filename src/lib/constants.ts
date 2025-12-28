@@ -14,3 +14,12 @@ export const SESSION_KEY = "openleaf_pending_auth";
 
 // UI timing
 export const AUTOSAVE_DELAY_MS = 500;
+
+// Routes
+export const ROUTES = {
+  HOME: "/",
+  CREATE: "/create",
+  SIGNIN: "/signin",
+  NOTES: "/notes",
+  NOTE: (id: string) => `/notes/${id}`,
+} as const;

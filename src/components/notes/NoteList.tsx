@@ -1,12 +1,10 @@
 import { User } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
+import { ROUTES } from "../../lib/constants";
 import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
 import { db } from "../../lib/db";
-import {
-  clearEncryptionKey,
-  getCurrentVaultId,
-  getEncryptionKey,
-} from "../../lib/store";
+import { clearEncryptionKey } from "../../lib/store";
 import type { DecryptedNote } from "../../lib/types";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -17,21 +15,19 @@ interface NoteListProps {
 }
 
 export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
+  const { isLoading: isAuthLoading, key, vaultId } = useRequireAuth();
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showAccount, setShowAccount] = useState(false);
 
   const loadNotes = useCallback(async () => {
+    if (!(key && vaultId)) {
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const key = getEncryptionKey();
-      const vaultId = getCurrentVaultId();
-      if (!(key && vaultId)) {
-        window.location.href = "/signin";
-        return;
-      }
-
       const encryptedNotes = await db.notes
         .where("vaultId")
         .equals(vaultId)
@@ -64,11 +60,13 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [key, vaultId]);
 
   useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+    if (!isAuthLoading && key && vaultId) {
+      loadNotes();
+    }
+  }, [isAuthLoading, key, vaultId, loadNotes]);
 
   const filteredNotes = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -83,10 +81,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
   }, [notes, searchQuery]);
 
   async function handleCreateNote() {
-    const key = getEncryptionKey();
-    const vaultId = getCurrentVaultId();
     if (!(key && vaultId)) {
-      window.location.href = "/signin";
       return;
     }
 
@@ -107,7 +102,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
         updatedAt: now,
       });
 
-      onNavigate?.(`/notes/${id}`);
+      onNavigate?.(ROUTES.NOTE(id));
     } catch (err) {
       console.error("Failed to create note:", err);
     }
@@ -115,7 +110,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
 
   function handleSignOut() {
     clearEncryptionKey();
-    window.location.href = "/";
+    window.location.href = ROUTES.HOME;
   }
 
   if (isLoading) {
@@ -141,7 +136,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
             <button
               className="block w-full text-left hover:underline"
               key={note.id}
-              onClick={() => onNavigate?.(`/notes/${note.id}`)}
+              onClick={() => onNavigate?.(ROUTES.NOTE(note.id))}
               type="button"
             >
               {note.title || "Untitled"}
