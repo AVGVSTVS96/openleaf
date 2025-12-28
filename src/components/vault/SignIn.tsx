@@ -3,6 +3,8 @@ import { deriveKey, verifyKey } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { mnemonicToSeed, validateMnemonic } from "../../lib/mnemonic";
 import { saveAuthForNavigation } from "../../lib/store";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 
 export function SignIn() {
   const [mnemonic, setMnemonic] = useState("");
@@ -64,11 +66,10 @@ export function SignIn() {
     <form className="space-y-6" onSubmit={handleSignIn}>
       <p>Enter your 12-word recovery phrase to access your vault.</p>
 
-      <textarea
+      <Textarea
         autoCapitalize="off"
         autoComplete="off"
         autoCorrect="off"
-        className="w-full resize-none border border-secondary bg-transparent p-3 focus:border-primary focus:outline-none"
         onChange={(e) => setMnemonic(e.target.value)}
         placeholder="Enter your recovery phrase..."
         rows={3}
@@ -76,15 +77,11 @@ export function SignIn() {
         value={mnemonic}
       />
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-destructive">{error}</p>}
 
-      <button
-        className="bg-button px-6 py-2 transition-colors hover:bg-button-hover disabled:opacity-50"
-        disabled={isSigningIn || !mnemonic.trim()}
-        type="submit"
-      >
+      <Button disabled={isSigningIn || !mnemonic.trim()} type="submit">
         {isSigningIn ? "Signing in..." : "Sign in"}
-      </button>
+      </Button>
     </form>
   );
 }
