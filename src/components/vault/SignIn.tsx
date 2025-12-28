@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { validateMnemonic, mnemonicToSeed } from '../../lib/mnemonic';
-import { deriveKey, verifyKey } from '../../lib/crypto';
-import { db } from '../../lib/db';
-import { saveAuthForNavigation } from '../../lib/store';
+import { useState } from "react";
+import { deriveKey, verifyKey } from "../../lib/crypto";
+import { db } from "../../lib/db";
+import { mnemonicToSeed, validateMnemonic } from "../../lib/mnemonic";
+import { saveAuthForNavigation } from "../../lib/store";
 
 export function SignIn() {
-  const [mnemonic, setMnemonic] = useState('');
+  const [mnemonic, setMnemonic] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -15,11 +15,11 @@ export function SignIn() {
     const trimmedMnemonic = mnemonic.trim().toLowerCase();
 
     setIsSigningIn(true);
-    setError('');
+    setError("");
 
     const isValid = await validateMnemonic(trimmedMnemonic);
     if (!isValid) {
-      setError('Invalid recovery phrase. Please check and try again.');
+      setError("Invalid recovery phrase. Please check and try again.");
       setIsSigningIn(false);
       return;
     }
@@ -30,7 +30,7 @@ export function SignIn() {
       const vaults = await db.vault.toArray();
 
       if (vaults.length === 0) {
-        setError('No vault found. Please create a new vault first.');
+        setError("No vault found. Please create a new vault first.");
         setIsSigningIn(false);
         return;
       }
@@ -44,48 +44,46 @@ export function SignIn() {
       }
 
       if (!matchedVaultId) {
-        setError('Invalid recovery phrase for this vault.');
+        setError("Invalid recovery phrase for this vault.");
         setIsSigningIn(false);
         return;
       }
 
       // Save auth state to sessionStorage to survive page navigation
       saveAuthForNavigation(seed, matchedVaultId);
-      window.location.href = '/notes';
+      window.location.href = "/notes";
     } catch (err) {
-      console.error('Sign in failed:', err);
-      setError('Sign in failed. Please try again.');
+      console.error("Sign in failed:", err);
+      setError("Sign in failed. Please try again.");
     } finally {
       setIsSigningIn(false);
     }
   }
 
   return (
-    <form onSubmit={handleSignIn} className="space-y-6">
+    <form className="space-y-6" onSubmit={handleSignIn}>
       <p>Enter your 12-word recovery phrase to access your vault.</p>
 
       <textarea
-        value={mnemonic}
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
+        className="w-full resize-none border border-[#ccc] bg-transparent p-3 focus:border-[#888] focus:outline-none"
         onChange={(e) => setMnemonic(e.target.value)}
         placeholder="Enter your recovery phrase..."
         rows={3}
-        className="w-full p-3 bg-transparent border border-[#ccc] focus:outline-none focus:border-[#888] resize-none"
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
         spellCheck={false}
+        value={mnemonic}
       />
 
-      {error && (
-        <p className="text-red-600">{error}</p>
-      )}
+      {error && <p className="text-red-600">{error}</p>}
 
       <button
-        type="submit"
+        className="bg-[#E8E4DF] px-6 py-2 transition-colors hover:bg-[#D8D4CF] disabled:opacity-50"
         disabled={isSigningIn || !mnemonic.trim()}
-        className="px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] disabled:opacity-50 transition-colors"
+        type="submit"
       >
-        {isSigningIn ? 'Signing in...' : 'Sign in'}
+        {isSigningIn ? "Signing in..." : "Sign in"}
       </button>
     </form>
   );

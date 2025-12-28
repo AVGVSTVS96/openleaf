@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #FAF8F5;
+  --color-background: #faf8f5;
   --color-primary: #000000;
   --color-secondary: #888888;
-  --color-accent: #DC2626;
-  --color-button: #E8E4DF;
-  --color-button-hover: #D8D4CF;
+  --color-accent: #dc2626;
+  --color-button: #e8e4df;
+  --color-button-hover: #d8d4cf;
 
-  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
 }
 
 html {
@@ -33,6 +33,15 @@ a:hover {
 }
 
 /* Markdown-style headings */
-.md-h1::before { content: "# "; color: var(--color-secondary); }
-.md-h2::before { content: "## "; color: var(--color-secondary); }
-.md-h3::before { content: "### "; color: var(--color-secondary); }
+.md-h1::before {
+  content: "# ";
+  color: var(--color-secondary);
+}
+.md-h2::before {
+  content: "## ";
+  color: var(--color-secondary);
+}
+.md-h3::before {
+  content: "### ";
+  color: var(--color-secondary);
+}

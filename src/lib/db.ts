@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie';
+import Dexie, { type Table } from "dexie";
 
 export interface Vault {
   id: string;
@@ -20,17 +20,17 @@ export class OpenLeafDB extends Dexie {
   notes!: Table<Note, string>;
 
   constructor() {
-    super('OpenLeafDB');
+    super("OpenLeafDB");
 
     this.version(1).stores({
-      vault: 'id',
-      notes: 'id, updatedAt'
+      vault: "id",
+      notes: "id, updatedAt",
     });
 
     // Add vaultId field to notes for multi-vault support
     this.version(2).stores({
-      vault: 'id',
-      notes: 'id, vaultId, updatedAt'
+      vault: "id",
+      notes: "id, vaultId, updatedAt",
     });
   }
 }

@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { MnemonicDisplay } from './MnemonicDisplay';
-import { generateMnemonic, mnemonicToSeed } from '../../lib/mnemonic';
-import { deriveKey, createVerifier } from '../../lib/crypto';
-import { db } from '../../lib/db';
-import { saveAuthForNavigation } from '../../lib/store';
+import { useEffect, useState } from "react";
+import { createVerifier, deriveKey } from "../../lib/crypto";
+import { db } from "../../lib/db";
+import { generateMnemonic, mnemonicToSeed } from "../../lib/mnemonic";
+import { saveAuthForNavigation } from "../../lib/store";
+import { MnemonicDisplay } from "./MnemonicDisplay";
 
 export function CreateVault() {
-  const [mnemonic, setMnemonic] = useState<string>('');
+  const [mnemonic, setMnemonic] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     async function createVault() {
@@ -27,15 +27,15 @@ export function CreateVault() {
         await db.vault.put({
           id: vaultId,
           encryptedVerifier,
-          createdAt: Date.now()
+          createdAt: Date.now(),
         });
 
         // Save auth state for navigation
         saveAuthForNavigation(seed, vaultId);
         setIsReady(true);
       } catch (err) {
-        console.error('Failed to create vault:', err);
-        const message = err instanceof Error ? err.message : 'Unknown error';
+        console.error("Failed to create vault:", err);
+        const message = err instanceof Error ? err.message : "Unknown error";
         setError(`Failed to create vault: ${message}`);
       } finally {
         setIsLoading(false);
@@ -46,7 +46,7 @@ export function CreateVault() {
   }, []);
 
   function handleCreateNote() {
-    window.location.href = '/notes';
+    window.location.href = "/notes";
   }
 
   if (isLoading) {
@@ -71,14 +71,12 @@ export function CreateVault() {
 
       {mnemonic && <MnemonicDisplay mnemonic={mnemonic} />}
 
-      {error && (
-        <p className="text-red-600">{error}</p>
-      )}
+      {error && <p className="text-red-600">{error}</p>}
 
       <button
-        onClick={handleCreateNote}
+        className="bg-[#E8E4DF] px-6 py-2 transition-colors hover:bg-[#D8D4CF] disabled:opacity-50"
         disabled={!isReady}
-        className="px-6 py-2 bg-[#E8E4DF] hover:bg-[#D8D4CF] disabled:opacity-50 transition-colors"
+        onClick={handleCreateNote}
       >
         Create new note
       </button>
@@ -89,8 +87,10 @@ export function CreateVault() {
 async function generateVaultId(mnemonic: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(mnemonic);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
   return hashHex.slice(0, 16);
 }

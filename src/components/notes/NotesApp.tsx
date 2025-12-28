@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { NoteList } from './NoteList';
-import { NoteEditor } from './NoteEditor';
-import { isAuthenticated, restoreAuthFromNavigation } from '../../lib/store';
-import { useNavigation } from '../../lib/useNavigation';
+import { useEffect, useState } from "react";
+import { isAuthenticated, restoreAuthFromNavigation } from "../../lib/store";
+import { useNavigation } from "../../lib/use-navigation";
+import { NoteEditor } from "./NoteEditor";
+import { NoteList } from "./NoteList";
 
-type View = { type: 'list' } | { type: 'edit'; noteId: string };
+type View = { type: "list" } | { type: "edit"; noteId: string };
 
 export function NotesApp() {
-  const [view, setView] = useState<View>({ type: 'list' });
+  const [view, setView] = useState<View>({ type: "list" });
   const [isInitializing, setIsInitializing] = useState(true);
   const { navigate, getCurrentView, handlePopState } = useNavigation();
 
@@ -20,7 +20,7 @@ export function NotesApp() {
 
       // If still not authenticated, redirect to sign in
       if (!isAuthenticated()) {
-        window.location.href = '/signin';
+        window.location.href = "/signin";
         return;
       }
 
@@ -44,15 +44,18 @@ export function NotesApp() {
     return <p className="text-gray-500">Loading...</p>;
   }
 
-  if (view.type === 'edit') {
+  if (view.type === "edit") {
     return (
       <NoteEditor
         noteId={view.noteId}
         onNavigate={(path) => {
-          if (path === '/notes') {
-            handleNavigate({ type: 'list' });
-          } else if (path.startsWith('/notes/')) {
-            handleNavigate({ type: 'edit', noteId: path.replace('/notes/', '') });
+          if (path === "/notes") {
+            handleNavigate({ type: "list" });
+          } else if (path.startsWith("/notes/")) {
+            handleNavigate({
+              type: "edit",
+              noteId: path.replace("/notes/", ""),
+            });
           }
         }}
       />
@@ -62,8 +65,8 @@ export function NotesApp() {
   return (
     <NoteList
       onNavigate={(path) => {
-        if (path.startsWith('/notes/')) {
-          handleNavigate({ type: 'edit', noteId: path.replace('/notes/', '') });
+        if (path.startsWith("/notes/")) {
+          handleNavigate({ type: "edit", noteId: path.replace("/notes/", "") });
         }
       }}
     />

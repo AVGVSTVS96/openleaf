@@ -1,52 +1,61 @@
-export const PBKDF2_ITERATIONS = 100000;
-export const SALT = 'openleaf-v1'; // Static salt since mnemonic provides entropy
-export const VERIFIER_PLAINTEXT = 'openleaf-verified';
+export const PBKDF2_ITERATIONS = 100_000;
+export const SALT = "openleaf-v1"; // Static salt since mnemonic provides entropy
+export const VERIFIER_PLAINTEXT = "openleaf-verified";
 
-export async function deriveKey(seed: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
+export async function deriveKey(
+  seed: Uint8Array<ArrayBuffer>
+): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     seed,
-    'PBKDF2',
+    "PBKDF2",
     false,
-    ['deriveKey']
+    ["deriveKey"]
   );
 
   return crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt: new TextEncoder().encode(SALT),
       iterations: PBKDF2_ITERATIONS,
-      hash: 'SHA-256'
+      hash: "SHA-256",
     },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     false,
-    ['encrypt', 'decrypt']
+    ["encrypt", "decrypt"]
   );
 }
 
-export async function encrypt(plaintext: string, key: CryptoKey): Promise<{ ciphertext: string; iv: string }> {
+export async function encrypt(
+  plaintext: string,
+  key: CryptoKey
+): Promise<{ ciphertext: string; iv: string }> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encodedText = new TextEncoder().encode(plaintext);
 
   const ciphertextBuffer = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: "AES-GCM", iv },
     key,
     encodedText
   );
 
   return {
     ciphertext: bufferToBase64(ciphertextBuffer),
-    iv: bufferToBase64(iv)
+    iv: bufferToBase64(iv),
   };
 }
 
-export async function decrypt(ciphertext: string, iv: string, key: CryptoKey): Promise<string> {
+export async function decrypt(
+  ciphertext: string,
+  iv: string,
+  key: CryptoKey
+): Promise<string> {
   const ciphertextBuffer = base64ToBuffer(ciphertext);
   const ivBuffer = base64ToBuffer(iv);
 
   const plaintextBuffer = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: ivBuffer },
+    { name: "AES-GCM", iv: ivBuffer },
     key,
     ciphertextBuffer
   );
@@ -56,7 +65,7 @@ export async function decrypt(ciphertext: string, iv: string, key: CryptoKey): P
 
 function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-  let binary = '';
+  let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
@@ -72,14 +81,15 @@ function base64ToBuffer(base64: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-
-
 export async function createVerifier(key: CryptoKey): Promise<string> {
   const { ciphertext, iv } = await encrypt(VERIFIER_PLAINTEXT, key);
   return JSON.stringify({ ciphertext, iv });
 }
 
-export async function verifyKey(encryptedVerifier: string, key: CryptoKey): Promise<boolean> {
+export async function verifyKey(
+  encryptedVerifier: string,
+  key: CryptoKey
+): Promise<boolean> {
   try {
     const { ciphertext, iv } = JSON.parse(encryptedVerifier);
     const decrypted = await decrypt(ciphertext, iv, key);
@@ -95,13 +105,20 @@ export interface NoteData {
   content: string;
 }
 
-export async function encryptNoteData(data: NoteData, key: CryptoKey): Promise<{ encryptedData: string; iv: string }> {
+export async function encryptNoteData(
+  data: NoteData,
+  key: CryptoKey
+): Promise<{ encryptedData: string; iv: string }> {
   const plaintext = JSON.stringify(data);
   const { ciphertext, iv } = await encrypt(plaintext, key);
   return { encryptedData: ciphertext, iv };
 }
 
-export async function decryptNoteData(encryptedData: string, iv: string, key: CryptoKey): Promise<NoteData> {
+export async function decryptNoteData(
+  encryptedData: string,
+  iv: string,
+  key: CryptoKey
+): Promise<NoteData> {
   const plaintext = await decrypt(encryptedData, iv, key);
   return JSON.parse(plaintext) as NoteData;
 }
