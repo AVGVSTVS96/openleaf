@@ -68,7 +68,7 @@ export function SignIn() {
         autoCapitalize="off"
         autoComplete="off"
         autoCorrect="off"
-        className="w-full resize-none border border-[#ccc] bg-transparent p-3 focus:border-[#888] focus:outline-none"
+        className="w-full resize-none border border-secondary bg-transparent p-3 focus:border-primary focus:outline-none"
         onChange={(e) => setMnemonic(e.target.value)}
         placeholder="Enter your recovery phrase..."
         rows={3}
@@ -79,7 +79,7 @@ export function SignIn() {
       {error && <p className="text-red-600">{error}</p>}
 
       <button
-        className="bg-[#E8E4DF] px-6 py-2 transition-colors hover:bg-[#D8D4CF] disabled:opacity-50"
+        className="bg-button px-6 py-2 transition-colors hover:bg-button-hover disabled:opacity-50"
         disabled={isSigningIn || !mnemonic.trim()}
         type="submit"
       >
