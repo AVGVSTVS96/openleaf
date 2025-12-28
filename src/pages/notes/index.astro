@@ -1,4 +1,5 @@
 ---
+import Footer from "../../components/Footer.astro";
 import { NotesApp } from "../../components/notes/NotesApp";
 import Layout from "../../layouts/Layout.astro";
 ---
@@ -7,8 +8,6 @@ import Layout from "../../layouts/Layout.astro";
   <main class="min-h-screen flex flex-col px-6 py-12 max-w-xl mx-auto">
     <NotesApp client:load />
 
-    <footer class="pt-8 text-secondary">
-      <p>Created by <a href="https://github.com/AVGVSTVS96" class="text-secondary">@AVGVSTVS96</a></p>
-    </footer>
+    <Footer />
   </main>
 </Layout>

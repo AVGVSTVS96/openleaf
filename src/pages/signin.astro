@@ -1,4 +1,5 @@
 ---
+import Footer from "../components/Footer.astro";
 import { SignIn } from "../components/vault/SignIn";
 import Layout from "../layouts/Layout.astro";
 ---
@@ -14,8 +15,6 @@ import Layout from "../layouts/Layout.astro";
       <SignIn client:load />
     </div>
 
-    <footer class="pt-8 text-secondary">
-      <p>Created by <a href="https://github.com/AVGVSTVS96" class="text-secondary">@AVGVSTVS96</a></p>
-    </footer>
+    <Footer />
   </main>
 </Layout>
