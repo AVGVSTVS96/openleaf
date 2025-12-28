@@ -77,6 +77,7 @@ export function CreateVault() {
         className="bg-button px-6 py-2 transition-colors hover:bg-button-hover disabled:opacity-50"
         disabled={!isReady}
         onClick={handleCreateNote}
+        type="button"
       >
         Create new note
       </button>

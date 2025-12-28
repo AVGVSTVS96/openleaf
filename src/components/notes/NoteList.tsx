@@ -141,6 +141,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
               className="block w-full text-left hover:underline"
               key={note.id}
               onClick={() => onNavigate?.(`/notes/${note.id}`)}
+              type="button"
             >
               {note.title || "Untitled"}
             </button>
@@ -152,6 +153,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
         <button
           className="bg-button px-6 py-2 transition-colors hover:bg-button-hover"
           onClick={handleCreateNote}
+          type="button"
         >
           Create note
         </button>
@@ -159,6 +161,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
         <button
           className="rounded-full border border-secondary p-2 transition-colors hover:border-primary"
           onClick={() => setShowAccount(!showAccount)}
+          type="button"
         >
           <User size={20} />
         </button>

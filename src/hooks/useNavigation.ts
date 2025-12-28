@@ -1,6 +1,9 @@
 import { useCallback } from "react";
 import type { View } from "../lib/types";
 
+// Regex for matching note edit routes
+const NOTE_ROUTE_REGEX = /^\/notes\/([^/]+)$/;
+
 export function useNavigation() {
   const navigate = useCallback((view: View) => {
     try {
@@ -19,7 +22,7 @@ export function useNavigation() {
 
   const getCurrentView = useCallback((): View => {
     const path = window.location.pathname;
-    const match = path.match(/^\/notes\/([^/]+)$/);
+    const match = path.match(NOTE_ROUTE_REGEX);
     if (match) {
       return { type: "edit", noteId: match[1] };
     }

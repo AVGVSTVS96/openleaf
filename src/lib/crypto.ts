@@ -1,8 +1,4 @@
-import {
-  PBKDF2_ITERATIONS,
-  SALT,
-  VERIFIER_PLAINTEXT,
-} from "./constants";
+import { PBKDF2_ITERATIONS, SALT, VERIFIER_PLAINTEXT } from "./constants";
 import type { NoteData } from "./types";
 
 export async function deriveKey(

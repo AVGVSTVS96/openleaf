@@ -5,6 +5,9 @@ import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { getEncryptionKey } from "../../lib/store";
 
+// Regex for extracting title from markdown heading
+const TITLE_REGEX = /^#\s*/;
+
 interface NoteEditorProps {
   noteId: string;
   onNavigate?: (path: string) => void;
@@ -20,17 +23,7 @@ export const NoteEditor = memo(function NoteEditor({
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>("");
 
-  useEffect(() => {
-    loadNote();
-
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [loadNote]);
-
-  async function loadNote() {
+  const loadNote = useCallback(async () => {
     setIsLoading(true);
     try {
       const key = getEncryptionKey();
@@ -53,7 +46,17 @@ export const NoteEditor = memo(function NoteEditor({
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [noteId, onNavigate]);
+
+  useEffect(() => {
+    loadNote();
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [loadNote]);
 
   const saveNote = useCallback(
     async (newContent: string) => {
@@ -68,7 +71,7 @@ export const NoteEditor = memo(function NoteEditor({
 
       try {
         const lines = newContent.split("\n");
-        const title = lines[0]?.replace(/^#\s*/, "").trim() || "";
+        const title = lines[0]?.replace(TITLE_REGEX, "").trim() || "";
 
         const { encryptedData, iv } = await encryptNoteData(
           { title, content: newContent },
@@ -139,6 +142,7 @@ export const NoteEditor = memo(function NoteEditor({
         <button
           className="border border-secondary bg-background p-3 transition-colors hover:border-primary"
           onClick={() => setShowMenu(!showMenu)}
+          type="button"
         >
           <Menu size={20} />
         </button>
@@ -148,12 +152,14 @@ export const NoteEditor = memo(function NoteEditor({
             <button
               className="block w-full px-4 py-2 text-left transition-colors hover:bg-button"
               onClick={handleBack}
+              type="button"
             >
               ← Back to notes
             </button>
             <button
               className="block w-full px-4 py-2 text-left text-accent transition-colors hover:bg-button"
               onClick={handleDelete}
+              type="button"
             >
               Delete note
             </button>

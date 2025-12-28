@@ -15,6 +15,7 @@ export const AccountModal = memo(function AccountModal({
         <button
           className="absolute top-4 right-4 text-secondary hover:text-primary"
           onClick={onClose}
+          type="button"
         >
           ✕
         </button>
@@ -31,6 +32,7 @@ export const AccountModal = memo(function AccountModal({
         <button
           className="w-full bg-button px-6 py-2 transition-colors hover:bg-button-hover"
           onClick={onSignOut}
+          type="button"
         >
           Sign out
         </button>
