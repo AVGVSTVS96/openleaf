@@ -3,6 +3,7 @@ import {
   SALT,
   VERIFIER_PLAINTEXT,
 } from "./constants";
+import type { NoteData } from "./types";
 
 export async function deriveKey(
   seed: Uint8Array<ArrayBuffer>
@@ -101,8 +102,6 @@ export async function verifyKey(
   }
 }
 
-import type { NoteData } from "./types";
-
 export async function encryptNoteData(
   data: NoteData,
   key: CryptoKey
@@ -119,4 +118,16 @@ export async function decryptNoteData(
 ): Promise<NoteData> {
   const plaintext = await decrypt(encryptedData, iv, key);
   return JSON.parse(plaintext) as NoteData;
+}
+
+// Generate a unique vault ID from the mnemonic
+export async function generateVaultId(mnemonic: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(mnemonic);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hashHex.slice(0, 16);
 }

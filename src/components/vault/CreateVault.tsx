@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createVerifier, deriveKey } from "../../lib/crypto";
+import { createVerifier, deriveKey, generateVaultId } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { generateMnemonic, mnemonicToSeed } from "../../lib/mnemonic";
 import { saveAuthForNavigation } from "../../lib/store";
@@ -82,15 +82,4 @@ export function CreateVault() {
       </button>
     </div>
   );
-}
-
-async function generateVaultId(mnemonic: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(mnemonic);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hashHex.slice(0, 16);
 }
