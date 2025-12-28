@@ -1,6 +1,8 @@
-export const PBKDF2_ITERATIONS = 100_000;
-export const SALT = "openleaf-v1"; // Static salt since mnemonic provides entropy
-export const VERIFIER_PLAINTEXT = "openleaf-verified";
+import {
+  PBKDF2_ITERATIONS,
+  SALT,
+  VERIFIER_PLAINTEXT,
+} from "./constants";
 
 export async function deriveKey(
   seed: Uint8Array<ArrayBuffer>

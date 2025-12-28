@@ -1,5 +1,6 @@
 import { Menu } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { AUTOSAVE_DELAY_MS } from "../../lib/constants";
 import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import { getEncryptionKey } from "../../lib/store";
@@ -97,7 +98,7 @@ export const NoteEditor = memo(function NoteEditor({
 
     saveTimeoutRef.current = window.setTimeout(() => {
       saveNote(newContent);
-    }, 500);
+    }, AUTOSAVE_DELAY_MS);
   }
 
   async function handleDelete() {

@@ -1,4 +1,5 @@
 import Dexie, { type Table } from "dexie";
+import { DB_NAME } from "./constants";
 
 export interface Vault {
   id: string;
@@ -20,7 +21,7 @@ export class OpenLeafDB extends Dexie {
   notes!: Table<Note, string>;
 
   constructor() {
-    super("OpenLeafDB");
+    super(DB_NAME);
 
     this.version(1).stores({
       vault: "id",

@@ -1,10 +1,10 @@
 // Client-side state management for encryption key and vault
 // Key is stored only in memory and cleared on tab close
 
+import { SESSION_KEY } from "./constants";
+
 let encryptionKey: CryptoKey | null = null;
 let currentVaultId: string | null = null;
-
-const SESSION_KEY = "openleaf_pending_auth";
 
 // Helper to check if we're in the browser
 const isBrowser = typeof window !== "undefined";
