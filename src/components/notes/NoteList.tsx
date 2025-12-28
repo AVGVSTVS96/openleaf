@@ -1,5 +1,5 @@
 import { User } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
 import { db } from "../../lib/db";
 import {
@@ -7,13 +7,7 @@ import {
   getCurrentVaultId,
   getEncryptionKey,
 } from "../../lib/store";
-
-interface DecryptedNote {
-  id: string;
-  title: string;
-  content: string;
-  updatedAt: number;
-}
+import type { DecryptedNote } from "../../lib/types";
 
 interface NoteListProps {
   onNavigate?: (path: string) => void;

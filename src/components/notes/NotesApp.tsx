@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { isAuthenticated, restoreAuthFromNavigation } from "../../lib/store";
+import type { View } from "../../lib/types";
 import { useNavigation } from "../../lib/use-navigation";
 import { NoteEditor } from "./NoteEditor";
 import { NoteList } from "./NoteList";
-
-type View = { type: "list" } | { type: "edit"; noteId: string };
 
 export function NotesApp() {
   const [view, setView] = useState<View>({ type: "list" });

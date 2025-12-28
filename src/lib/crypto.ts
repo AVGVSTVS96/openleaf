@@ -99,11 +99,7 @@ export async function verifyKey(
   }
 }
 
-// Note data types
-export interface NoteData {
-  title: string;
-  content: string;
-}
+import type { NoteData } from "./types";
 
 export async function encryptNoteData(
   data: NoteData,

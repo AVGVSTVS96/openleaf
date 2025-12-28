@@ -1,6 +1,5 @@
 import { useCallback } from "react";
-
-type View = { type: "list" } | { type: "edit"; noteId: string };
+import type { View } from "./types";
 
 export function useNavigation() {
   const navigate = useCallback((view: View) => {
