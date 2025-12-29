@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { LoadingMessage } from "@/components/ui/loading-message";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { ROUTES } from "@/lib/constants";
-import { decryptNoteData, encryptNoteData } from "@/lib/crypto";
+import { decryptNoteData } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { clearEncryptionKey } from "@/lib/store";
 import type { DecryptedNote } from "@/lib/types";
@@ -81,32 +81,9 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
     );
   }, [notes, searchQuery]);
 
-  async function handleCreateNote() {
-    if (!(key && vaultId)) {
-      return;
-    }
-
-    try {
-      const id = crypto.randomUUID();
-      const now = Date.now();
-      const { encryptedData, iv } = await encryptNoteData(
-        { title: "", content: "" },
-        key
-      );
-
-      await db.notes.add({
-        id,
-        vaultId,
-        encryptedData,
-        iv,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      onNavigate?.(ROUTES.NOTE(id));
-    } catch (err) {
-      console.error("Failed to create note:", err);
-    }
+  function handleCreateNote() {
+    const id = crypto.randomUUID();
+    onNavigate?.(ROUTES.NOTE(id));
   }
 
   function handleSignOut() {
