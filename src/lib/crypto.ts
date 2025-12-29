@@ -1,4 +1,9 @@
-import { PBKDF2_ITERATIONS, SALT, VERIFIER_PLAINTEXT } from "./constants";
+import {
+  PBKDF2_ITERATIONS,
+  SALT,
+  VAULT_ID_LENGTH,
+  VERIFIER_PLAINTEXT,
+} from "./constants";
 import type { NoteData } from "./types";
 
 export async function deriveKey(
@@ -125,5 +130,5 @@ export async function generateVaultId(mnemonic: string): Promise<string> {
   const hashHex = hashArray
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  return hashHex.slice(0, 16);
+  return hashHex.slice(0, VAULT_ID_LENGTH);
 }

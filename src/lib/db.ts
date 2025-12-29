@@ -1,20 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import { DB_NAME } from "./constants";
-
-export interface Vault {
-  id: string;
-  encryptedVerifier: string;
-  createdAt: number;
-}
-
-export interface Note {
-  id: string;
-  vaultId: string;
-  encryptedData: string; // JSON blob containing { title, content }
-  iv: string;
-  createdAt: number;
-  updatedAt: number;
-}
+import type { Note, Vault } from "./types";
 
 export class OpenLeafDB extends Dexie {
   vault!: Table<Vault, string>;

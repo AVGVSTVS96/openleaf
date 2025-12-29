@@ -1,13 +1,15 @@
 import { User } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useRequireAuth } from "../../hooks/useRequireAuth";
-import { ROUTES } from "../../lib/constants";
-import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
-import { db } from "../../lib/db";
-import { clearEncryptionKey } from "../../lib/store";
-import type { DecryptedNote } from "../../lib/types";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { LoadingMessage } from "@/components/ui/loading-message";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { ROUTES } from "@/lib/constants";
+import { decryptNoteData, encryptNoteData } from "@/lib/crypto";
+import { db } from "@/lib/db";
+import { clearEncryptionKey } from "@/lib/store";
+import type { DecryptedNote } from "@/lib/types";
+import { extractTitle } from "@/lib/utils";
 import { AccountModal } from "./AccountModal";
 
 interface NoteListProps {
@@ -44,8 +46,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
           );
           decryptedNotes.push({
             id: note.id,
-            title:
-              noteData.title || noteData.content.split("\n")[0] || "Untitled",
+            title: noteData.title || extractTitle(noteData.content),
             content: noteData.content,
             updatedAt: note.updatedAt,
           });
@@ -114,7 +115,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
   }
 
   if (isLoading) {
-    return <p className="text-secondary">Loading...</p>;
+    return <LoadingMessage message="Loading..." />;
   }
 
   return (
@@ -133,14 +134,14 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
           </p>
         ) : (
           filteredNotes.map((note) => (
-            <button
-              className="block w-full text-left hover:underline"
+            <Button
+              className="w-full justify-start"
               key={note.id}
               onClick={() => onNavigate?.(ROUTES.NOTE(note.id))}
-              type="button"
+              variant="ghost"
             >
               {note.title || "Untitled"}
-            </button>
+            </Button>
           ))
         )}
       </div>

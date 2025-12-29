@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { ROUTES } from "../../lib/constants";
-import { deriveKey, verifyKey } from "../../lib/crypto";
-import { db } from "../../lib/db";
-import { mnemonicToSeed, validateMnemonic } from "../../lib/mnemonic";
-import { saveAuthForNavigation } from "../../lib/store";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+import { memo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Textarea } from "@/components/ui/textarea";
+import { ROUTES } from "@/lib/constants";
+import { deriveKey, verifyKey } from "@/lib/crypto";
+import { db } from "@/lib/db";
+import { mnemonicToSeed, validateMnemonic } from "@/lib/mnemonic";
+import { saveAuthForNavigation } from "@/lib/store";
 
-export function SignIn() {
+export const SignIn = memo(function SignIn() {
   const [mnemonic, setMnemonic] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string>("");
@@ -78,11 +79,11 @@ export function SignIn() {
         value={mnemonic}
       />
 
-      {error && <p className="text-destructive">{error}</p>}
+      {error && <ErrorMessage message={error} />}
 
       <Button disabled={isSigningIn || !mnemonic.trim()} type="submit">
         {isSigningIn ? "Signing in..." : "Sign in"}
       </Button>
     </form>
   );
-}
+});

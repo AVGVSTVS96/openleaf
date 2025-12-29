@@ -1,12 +1,24 @@
-import { useEffect, useState } from "react";
-import { useNavigation } from "../../hooks/useNavigation";
-import { useRequireAuth } from "../../hooks/useRequireAuth";
-import { ROUTES } from "../../lib/constants";
-import type { View } from "../../lib/types";
+import { memo, useEffect, useState } from "react";
+import { LoadingMessage } from "@/components/ui/loading-message";
+import { useNavigation } from "@/hooks/useNavigation";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { ROUTES } from "@/lib/constants";
+import type { View } from "@/lib/types";
 import { NoteEditor } from "./NoteEditor";
 import { NoteList } from "./NoteList";
 
-export function NotesApp() {
+function parsePathToView(path: string): View {
+  if (path === ROUTES.NOTES) {
+    return { type: "list" };
+  }
+  if (path.startsWith(`${ROUTES.NOTES}/`)) {
+    const noteId = path.replace(`${ROUTES.NOTES}/`, "");
+    return { type: "edit", noteId };
+  }
+  return { type: "list" };
+}
+
+export const NotesApp = memo(function NotesApp() {
   const { isLoading: isAuthLoading } = useRequireAuth();
   const [view, setView] = useState<View>({ type: "list" });
   const { navigate, getCurrentView, handlePopState } = useNavigation();
@@ -26,7 +38,7 @@ export function NotesApp() {
   };
 
   if (isAuthLoading) {
-    return <p className="flex-1 text-secondary">Loading...</p>;
+    return <LoadingMessage message="Loading..." />;
   }
 
   if (view.type === "edit") {
@@ -34,14 +46,7 @@ export function NotesApp() {
       <NoteEditor
         noteId={view.noteId}
         onNavigate={(path) => {
-          if (path === ROUTES.NOTES) {
-            handleNavigate({ type: "list" });
-          } else if (path.startsWith(`${ROUTES.NOTES}/`)) {
-            handleNavigate({
-              type: "edit",
-              noteId: path.replace(`${ROUTES.NOTES}/`, ""),
-            });
-          }
+          handleNavigate(parsePathToView(path));
         }}
       />
     );
@@ -50,13 +55,8 @@ export function NotesApp() {
   return (
     <NoteList
       onNavigate={(path) => {
-        if (path.startsWith(`${ROUTES.NOTES}/`)) {
-          handleNavigate({
-            type: "edit",
-            noteId: path.replace(`${ROUTES.NOTES}/`, ""),
-          });
-        }
+        handleNavigate(parsePathToView(path));
       }}
     />
   );
-}
+});

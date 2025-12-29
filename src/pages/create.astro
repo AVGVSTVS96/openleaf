@@ -1,4 +1,6 @@
 ---
+import BackLink from "../components/BackLink.astro";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import Footer from "../components/Footer.astro";
 import { CreateVault } from "../components/vault/CreateVault";
 import Layout from "../layouts/Layout.astro";
@@ -6,12 +8,14 @@ import Layout from "../layouts/Layout.astro";
 
 <Layout title="Create Vault - OpenLeaf">
   <header class="mb-8">
-    <a href="/" class="text-secondary no-underline hover:text-primary">← Back</a>
+    <BackLink href="/" />
   </header>
 
   <div class="flex-1">
     <h1 class="text-xl font-bold mb-6 md-h1">Create new vault</h1>
-    <CreateVault client:load />
+    <ErrorBoundary>
+      <CreateVault client:load />
+    </ErrorBoundary>
   </div>
 
   <Footer />
