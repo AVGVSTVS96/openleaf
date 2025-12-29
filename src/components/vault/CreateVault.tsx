@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
-import { ROUTES } from "../../lib/constants";
-import { createVerifier, deriveKey, generateVaultId } from "../../lib/crypto";
-import { db } from "../../lib/db";
-import { generateMnemonic, mnemonicToSeed } from "../../lib/mnemonic";
-import { saveAuthForNavigation } from "../../lib/store";
-import { Button } from "../ui/button";
+import { memo, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingMessage } from "@/components/ui/loading-message";
+import { ROUTES } from "@/lib/constants";
+import { createVerifier, deriveKey, generateVaultId } from "@/lib/crypto";
+import { db } from "@/lib/db";
+import { generateMnemonic, mnemonicToSeed } from "@/lib/mnemonic";
+import { saveAuthForNavigation } from "@/lib/store";
 import { MnemonicDisplay } from "./MnemonicDisplay";
 
-export function CreateVault() {
+export const CreateVault = memo(function CreateVault() {
   const [mnemonic, setMnemonic] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
@@ -54,7 +56,7 @@ export function CreateVault() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <p className="text-secondary">Creating your vault...</p>
+        <LoadingMessage message="Creating your vault..." />
       </div>
     );
   }
@@ -73,11 +75,11 @@ export function CreateVault() {
 
       {mnemonic && <MnemonicDisplay mnemonic={mnemonic} />}
 
-      {error && <p className="text-destructive">{error}</p>}
+      {error && <ErrorMessage message={error} />}
 
       <Button disabled={!isReady} onClick={handleCreateNote}>
         Create new note
       </Button>
     </div>
   );
-}
+});

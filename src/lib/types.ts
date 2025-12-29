@@ -16,3 +16,20 @@ export interface DecryptedNote {
   content: string;
   updatedAt: number;
 }
+
+// Vault database schema
+export interface Vault {
+  id: string;
+  encryptedVerifier: string;
+  createdAt: number;
+}
+
+// Note database schema
+export interface Note {
+  id: string;
+  vaultId: string;
+  encryptedData: string;
+  iv: string;
+  createdAt: number;
+  updatedAt: number;
+}

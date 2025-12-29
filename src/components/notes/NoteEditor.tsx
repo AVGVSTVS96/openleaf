@@ -1,9 +1,5 @@
 import { ArrowLeft, Menu, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { useRequireAuth } from "../../hooks/useRequireAuth";
-import { AUTOSAVE_DELAY_MS, ROUTES } from "../../lib/constants";
-import { decryptNoteData, encryptNoteData } from "../../lib/crypto";
-import { db } from "../../lib/db";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,17 +9,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "../ui/alert-dialog";
-import { Button } from "../ui/button";
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-
-// Regex for extracting title from markdown heading
-const TITLE_REGEX = /^#\s*/;
+} from "@/components/ui/dropdown-menu";
+import { LoadingMessage } from "@/components/ui/loading-message";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { AUTOSAVE_DELAY_MS, ROUTES } from "@/lib/constants";
+import { decryptNoteData, encryptNoteData } from "@/lib/crypto";
+import { db } from "@/lib/db";
+import { extractTitle } from "@/lib/utils";
 
 interface NoteEditorProps {
   noteId: string;
@@ -87,8 +86,7 @@ export const NoteEditor = memo(function NoteEditor({
       }
 
       try {
-        const lines = newContent.split("\n");
-        const title = lines[0]?.replace(TITLE_REGEX, "").trim() || "";
+        const title = extractTitle(newContent);
 
         const { encryptedData, iv } = await encryptNoteData(
           { title, content: newContent },
@@ -138,7 +136,7 @@ export const NoteEditor = memo(function NoteEditor({
   }
 
   if (isLoading) {
-    return <p className="flex-1 text-secondary">Loading...</p>;
+    return <LoadingMessage message="Loading..." />;
   }
 
   return (

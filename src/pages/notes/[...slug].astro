@@ -1,4 +1,5 @@
 ---
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import Footer from "../../components/Footer.astro";
 import { NotesApp } from "../../components/notes/NotesApp";
 import Layout from "../../layouts/Layout.astro";
@@ -8,6 +9,8 @@ export const prerender = false;
 ---
 
 <Layout title="Notes - OpenLeaf">
-  <NotesApp client:load />
+  <ErrorBoundary>
+    <NotesApp client:load />
+  </ErrorBoundary>
   <Footer />
 </Layout>
