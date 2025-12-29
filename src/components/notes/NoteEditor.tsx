@@ -33,12 +33,13 @@ export const NoteEditor = memo(function NoteEditor({
   noteId,
   onNavigate,
 }: NoteEditorProps) {
-  const { isLoading: isAuthLoading, key } = useRequireAuth();
+  const { isLoading: isAuthLoading, key, vaultId } = useRequireAuth();
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>("");
+  const isNewNoteRef = useRef(false);
 
   const loadNote = useCallback(async () => {
     if (!key) {
@@ -48,20 +49,28 @@ export const NoteEditor = memo(function NoteEditor({
     setIsLoading(true);
     try {
       const note = await db.notes.get(noteId);
-      if (!note) {
-        onNavigate?.(ROUTES.NOTES);
-        return;
+      if (note) {
+        // Existing note
+        isNewNoteRef.current = false;
+        const noteData = await decryptNoteData(
+          note.encryptedData,
+          note.iv,
+          key
+        );
+        setContent(noteData.content);
+        lastSavedContentRef.current = noteData.content;
+      } else {
+        // New note - not yet persisted
+        isNewNoteRef.current = true;
+        setContent("");
+        lastSavedContentRef.current = "";
       }
-
-      const noteData = await decryptNoteData(note.encryptedData, note.iv, key);
-      setContent(noteData.content);
-      lastSavedContentRef.current = noteData.content;
     } catch (err) {
       console.error("Failed to load note:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [noteId, onNavigate, key]);
+  }, [noteId, key]);
 
   useEffect(() => {
     if (!isAuthLoading && key) {
@@ -81,7 +90,7 @@ export const NoteEditor = memo(function NoteEditor({
         return;
       }
 
-      if (!key) {
+      if (!(key && vaultId)) {
         return;
       }
 
@@ -93,18 +102,33 @@ export const NoteEditor = memo(function NoteEditor({
           key
         );
 
-        await db.notes.update(noteId, {
-          encryptedData,
-          iv,
-          updatedAt: Date.now(),
-        });
+        if (isNewNoteRef.current) {
+          // First save - create note
+          const now = Date.now();
+          await db.notes.add({
+            id: noteId,
+            vaultId,
+            encryptedData,
+            iv,
+            createdAt: now,
+            updatedAt: now,
+          });
+          isNewNoteRef.current = false;
+        } else {
+          // Update existing note
+          await db.notes.update(noteId, {
+            encryptedData,
+            iv,
+            updatedAt: Date.now(),
+          });
+        }
 
         lastSavedContentRef.current = newContent;
       } catch (err) {
         console.error("Failed to save note:", err);
       }
     },
-    [noteId, key]
+    [noteId, key, vaultId]
   );
 
   function handleContentChange(newContent: string) {
@@ -129,9 +153,22 @@ export const NoteEditor = memo(function NoteEditor({
   }
 
   function handleBack() {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    const hasContent = content.trim().length > 0;
+
+    if (isNewNoteRef.current && !hasContent) {
+      // New note with no content - discard
+      onNavigate?.(ROUTES.NOTES);
+      return;
+    }
+
     if (content !== lastSavedContentRef.current) {
       saveNote(content);
     }
+
     onNavigate?.(ROUTES.NOTES);
   }
 
