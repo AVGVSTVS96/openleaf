@@ -4,6 +4,34 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ProseMark theme customization */
+:root {
+  --pm-header-mark-color: var(--muted-foreground);
+  --pm-link-color: var(--destructive);
+  --pm-muted-color: var(--muted-foreground);
+  --pm-code-background-color: var(--muted);
+  --pm-blockquote-vertical-line-background-color: var(--border);
+  --pm-cursor-color: var(--foreground);
+}
+
+/* Editor container */
+.cm-editor {
+  height: 100%;
+}
+
+.cm-editor .cm-scroller {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+  line-height: 1.7;
+}
+
+/* Placeholder styling */
+.cm-editor .cm-content[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  pointer-events: none;
+  position: absolute;
+}
+
 html {
   background-color: var(--background);
 }

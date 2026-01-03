@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoadingMessage } from "@/components/ui/loading-message";
+import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { AUTOSAVE_DELAY_MS, ROUTES } from "@/lib/constants";
 import { decryptNoteData, encryptNoteData } from "@/lib/crypto";
@@ -178,12 +179,10 @@ export const NoteEditor = memo(function NoteEditor({
 
   return (
     <div className="flex flex-1 flex-col">
-      <textarea
-        autoFocus
-        className="w-full flex-1 resize-none bg-transparent focus:outline-none"
-        onChange={(e) => handleContentChange(e.target.value)}
+      <MarkdownEditor
+        content={content}
+        onChange={handleContentChange}
         placeholder="Start writing..."
-        value={content}
       />
 
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
