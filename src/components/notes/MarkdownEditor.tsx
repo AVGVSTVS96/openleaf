@@ -1,4 +1,4 @@
-import { EditorState } from "@codemirror/state";
+import { EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
@@ -8,12 +8,66 @@ import {
   prosemarkBaseThemeSetup,
   prosemarkMarkdownSyntaxExtensions,
 } from "@prosemark/core";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createShikiPlugin } from "@/lib/codemirror/shiki-plugin";
+import { getHighlighter } from "@/lib/highlighter";
+import type { HighlighterCore } from "shiki/core";
 
 interface MarkdownEditorProps {
   content: string;
   onChange: (markdown: string) => void;
   placeholder?: string;
+}
+
+const baseTheme = EditorView.theme({
+  "&": {
+    height: "100%",
+    fontSize: "14px",
+  },
+  ".cm-content": {
+    fontFamily: 'ui-monospace, "SF Mono", "Cascadia Code", monospace',
+    padding: "0",
+  },
+  ".cm-line": {
+    padding: "0",
+  },
+  "&.cm-focused": {
+    outline: "none",
+  },
+  ".cm-placeholder": {
+    color: "var(--muted-foreground)",
+  },
+});
+
+function buildExtensions(
+  onChangeRef: React.RefObject<(markdown: string) => void>,
+  placeholder: string,
+  highlighter: HighlighterCore | null
+): Extension[] {
+  const extensions: Extension[] = [
+    markdown({
+      codeLanguages: languages,
+      extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
+    }),
+    prosemarkBasicSetup(),
+    prosemarkBaseThemeSetup(),
+    baseTheme,
+    EditorView.lineWrapping,
+    EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        onChangeRef.current?.(update.state.doc.toString());
+      }
+    }),
+    EditorView.contentAttributes.of({
+      "data-placeholder": placeholder,
+    }),
+  ];
+
+  if (highlighter) {
+    extensions.push(createShikiPlugin(highlighter, "github-light"));
+  }
+
+  return extensions;
 }
 
 export function MarkdownEditor({
@@ -27,57 +81,39 @@ export function MarkdownEditor({
   // Store initial values in refs to avoid re-initialization
   const initialContentRef = useRef(content);
   const placeholderRef = useRef(placeholder);
+  const [highlighter, setHighlighter] = useState<HighlighterCore | null>(null);
 
   // Keep onChange ref up to date
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // Initialize editor
+  // Load Shiki highlighter
+  useEffect(() => {
+    getHighlighter().then(setHighlighter);
+  }, []);
+
+  // Initialize editor (recreate when highlighter loads)
   useEffect(() => {
     if (!containerRef.current) {
       return;
     }
 
+    // Get current content from existing view if available
+    const currentContent =
+      viewRef.current?.state.doc.toString() ?? initialContentRef.current;
+
     const state = EditorState.create({
-      doc: initialContentRef.current,
-      extensions: [
-        markdown({
-          codeLanguages: languages,
-          extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
-        }),
-        prosemarkBasicSetup(),
-        prosemarkBaseThemeSetup(),
-        EditorView.lineWrapping,
-        EditorView.updateListener.of((update) => {
-          if (update.docChanged) {
-            onChangeRef.current(update.state.doc.toString());
-          }
-        }),
-        EditorView.theme({
-          "&": {
-            height: "100%",
-            fontSize: "14px",
-          },
-          ".cm-content": {
-            fontFamily: 'ui-monospace, "SF Mono", "Cascadia Code", monospace',
-            padding: "0",
-          },
-          ".cm-line": {
-            padding: "0",
-          },
-          "&.cm-focused": {
-            outline: "none",
-          },
-          ".cm-placeholder": {
-            color: "var(--muted-foreground)",
-          },
-        }),
-        EditorView.contentAttributes.of({
-          "data-placeholder": placeholderRef.current,
-        }),
-      ],
+      doc: currentContent,
+      extensions: buildExtensions(
+        onChangeRef,
+        placeholderRef.current,
+        highlighter
+      ),
     });
+
+    // Destroy previous view if exists
+    viewRef.current?.destroy();
 
     viewRef.current = new EditorView({
       state,
@@ -91,7 +127,7 @@ export function MarkdownEditor({
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-  }, []);
+  }, [highlighter]); // Recreate when highlighter loads
 
   // Sync content from props (for note switching)
   useEffect(() => {
