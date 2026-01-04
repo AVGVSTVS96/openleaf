@@ -34,6 +34,10 @@
 
 html {
   background-color: var(--background);
+  /* Premium font smoothing */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -42,15 +46,18 @@ body {
   min-height: 100vh;
   font-size: 14px;
   line-height: 1.7;
+  letter-spacing: -0.011em;
 }
 
 a {
   color: var(--destructive);
   text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.15s ease;
 }
 
 a:hover {
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 /* Markdown-style headings */
@@ -74,23 +81,23 @@ a:hover {
 
   /* OpenLeaf color overrides */
   --background: #faf8f5;
-  --foreground: #000000;
+  --foreground: #1a1a1a;
   --card: #faf8f5;
-  --card-foreground: #000000;
+  --card-foreground: #1a1a1a;
   --popover: #faf8f5;
-  --popover-foreground: #000000;
+  --popover-foreground: #1a1a1a;
   --primary: #e8e4df;
-  --primary-foreground: #000000;
-  --secondary: #888888;
-  --secondary-foreground: #000000;
-  --muted: #e8e4df;
-  --muted-foreground: #888888;
-  --accent: #e8e4df;
-  --accent-foreground: #000000;
+  --primary-foreground: #1a1a1a;
+  --secondary: #6b6b6b;
+  --secondary-foreground: #1a1a1a;
+  --muted: #ebe8e4;
+  --muted-foreground: #6b6b6b;
+  --accent: #ebe8e4;
+  --accent-foreground: #1a1a1a;
   --destructive: #dc2626;
-  --border: #888888;
-  --input: #888888;
-  --ring: #000000;
+  --border: #c5c5c5;
+  --input: #c5c5c5;
+  --ring: #1a1a1a;
 
   /* Original shadcn values (commented out)
   --background: oklch(1 0 0);
@@ -165,7 +172,7 @@ a:hover {
 @theme inline {
   /* OpenLeaf custom colors (for custom utility classes) */
   --color-button: #e8e4df;
-  --color-button-hover: #d8d4cf;
+  --color-button-hover: #dedad5;
 
   /* shadcn/Tailwind color mappings - these map :root vars to Tailwind classes */
   --color-background: var(--background);
@@ -219,5 +226,11 @@ a:hover {
   }
   body {
     @apply bg-background text-foreground;
+  }
+  ::selection {
+    @apply bg-foreground/10;
+  }
+  ::-moz-selection {
+    @apply bg-foreground/10;
   }
 }
