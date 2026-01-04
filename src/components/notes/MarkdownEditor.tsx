@@ -25,17 +25,30 @@ const baseTheme = EditorView.theme({
     fontSize: "14px",
   },
   ".cm-content": {
-    fontFamily: 'ui-monospace, "SF Mono", "Cascadia Code", monospace',
+    fontFamily: "var(--font-mono)",
     padding: "0",
+    caretColor: "var(--caret)",
   },
   ".cm-line": {
     padding: "0",
   },
+  ".cm-activeLine": {
+    backgroundColor: "var(--line-highlight)",
+  },
   "&.cm-focused": {
     outline: "none",
   },
+  ".cm-cursor, .cm-dropCursor": {
+    borderLeftColor: "var(--caret)",
+    borderLeftWidth: "1.5px",
+  },
   ".cm-placeholder": {
     color: "var(--muted-foreground)",
+    fontStyle: "italic",
+    opacity: "0.6",
+  },
+  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground": {
+    backgroundColor: "var(--selection)",
   },
 });
 
