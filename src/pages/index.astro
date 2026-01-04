@@ -5,27 +5,40 @@ import { APP_EMOJI } from "../lib/constants";
 ---
 
 <Layout title="OpenLeaf - Encrypted Notes">
-  <div class="flex-1 space-y-6">
-    <div class="text-2xl">{APP_EMOJI}</div>
+  <div class="flex-1 flex flex-col justify-center -mt-12">
+    <div class="space-y-8">
+      <div class="space-y-4">
+        <div class="text-3xl">{APP_EMOJI}</div>
+        <h1 class="text-2xl font-semibold tracking-tight">OpenLeaf</h1>
+        <p class="text-muted-foreground leading-relaxed">
+          End-to-end encrypted markdown notes.<br />
+          Offline-first. No AI. Privately yours.
+        </p>
+      </div>
 
-    <h1 class="text-xl font-bold md-h1">OpenLeaf</h1>
+      <div class="flex flex-col gap-3">
+        <a
+          href="/create"
+          class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 no-underline"
+        >
+          Create new vault
+        </a>
+        <a
+          href="/signin"
+          class="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-6 text-sm font-medium transition-colors hover:bg-accent no-underline"
+        >
+          Sign in to existing vault
+        </a>
+      </div>
 
-    <p>End to end encrypted offline markdown notes.</p>
-
-    <p>No AI. Privately yours.</p>
-
-    <div class="space-y-2 pt-2">
-      <a href="/create" class="block">Create new vault</a>
-      <a href="/signin" class="block">Sign in to existing vault</a>
+      <div class="space-y-3 pt-4 text-sm text-muted-foreground">
+        <p>100% free. No limits. No catch.</p>
+        <p class="leading-relaxed">
+          Your vault key never leaves your device – it's only used to encrypt
+          notes locally before they're stored.
+        </p>
+      </div>
     </div>
-
-    <p class="pt-4">100% free to use. No limits. No catch.</p>
-
-    <p class="text-secondary">
-      Your vault key never leaves your device or gets sent to the server –
-      it's only used to encrypt updates before they're sent, so no one except
-      you can read what you write.
-    </p>
   </div>
 
   <Footer />

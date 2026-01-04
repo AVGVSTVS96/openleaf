@@ -96,35 +96,36 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
   }
 
   return (
-    <div className="flex-1 space-y-6">
+    <div className="flex-1 flex flex-col gap-6">
       <Input
         onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search notes"
+        placeholder="Search notes..."
         type="text"
         value={searchQuery}
       />
 
-      <div className="space-y-2">
+      <div className="flex-1 space-y-1">
         {filteredNotes.length === 0 ? (
-          <p className="text-secondary">
-            {searchQuery ? "No notes found." : "No notes yet."}
+          <p className="text-muted-foreground text-sm py-4">
+            {searchQuery ? "No notes found." : "No notes yet. Create one to get started."}
           </p>
         ) : (
           filteredNotes.map((note) => (
-            <Button
-              className="w-full justify-start"
+            <button
+              className="w-full text-left px-3 py-2.5 rounded-md text-sm transition-colors hover:bg-accent truncate"
               key={note.id}
               onClick={() => onNavigate?.(ROUTES.NOTE(note.id))}
-              variant="ghost"
             >
               {note.title || "Untitled"}
-            </Button>
+            </button>
           ))
         )}
       </div>
 
-      <div className="flex items-center gap-4 pt-4">
-        <Button onClick={handleCreateNote}>Create note</Button>
+      <div className="flex items-center gap-3 pt-2 border-t border-border">
+        <Button className="flex-1" onClick={handleCreateNote}>
+          Create note
+        </Button>
 
         <Button
           className="rounded-full"
@@ -132,7 +133,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
           size="icon"
           variant="outline"
         >
-          <User size={20} />
+          <User size={18} />
         </Button>
       </div>
 

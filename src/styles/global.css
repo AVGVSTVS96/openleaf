@@ -45,12 +45,15 @@ body {
 }
 
 a {
-  color: var(--destructive);
+  color: var(--foreground);
   text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--muted-foreground);
+  transition: text-decoration-color 0.15s ease;
 }
 
 a:hover {
-  opacity: 0.8;
+  text-decoration-color: var(--foreground);
 }
 
 /* Markdown-style headings */
@@ -68,29 +71,28 @@ a:hover {
 }
 
 :root {
-  /* OpenLeaf overrides - no border radius */
-  --radius: 0;
-  /* --radius: 0.625rem; */
+  /* OpenLeaf - refined minimalist design */
+  --radius: 0.375rem;
 
-  /* OpenLeaf color overrides */
-  --background: #faf8f5;
-  --foreground: #000000;
-  --card: #faf8f5;
-  --card-foreground: #000000;
-  --popover: #faf8f5;
-  --popover-foreground: #000000;
-  --primary: #e8e4df;
-  --primary-foreground: #000000;
-  --secondary: #888888;
-  --secondary-foreground: #000000;
-  --muted: #e8e4df;
-  --muted-foreground: #888888;
-  --accent: #e8e4df;
-  --accent-foreground: #000000;
-  --destructive: #dc2626;
-  --border: #888888;
-  --input: #888888;
-  --ring: #000000;
+  /* Refined color palette */
+  --background: #fafafa;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #525252;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #ef4444;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #171717;
 
   /* Original shadcn values (commented out)
   --background: oklch(1 0 0);
@@ -164,8 +166,8 @@ a:hover {
 
 @theme inline {
   /* OpenLeaf custom colors (for custom utility classes) */
-  --color-button: #e8e4df;
-  --color-button-hover: #d8d4cf;
+  --color-button: #171717;
+  --color-button-hover: #262626;
 
   /* shadcn/Tailwind color mappings - these map :root vars to Tailwind classes */
   --color-background: var(--background);
