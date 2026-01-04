@@ -24,6 +24,35 @@
   line-height: 1.7;
 }
 
+/* Fold gutter spacing */
+.cm-editor .cm-foldGutter {
+  width: 1.2em;
+  padding-right: 0.5em;
+}
+
+.cm-editor .cm-foldGutter .cm-gutterElement {
+  padding: 0 2px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.cm-editor .cm-foldGutter .cm-gutterElement:hover {
+  opacity: 1;
+}
+
+/* Hide the ugly fold placeholder or style it better */
+.cm-editor .cm-foldPlaceholder {
+  background: var(--muted);
+  border: none;
+  color: var(--muted-foreground);
+  border-radius: 3px;
+  padding: 0 6px;
+  margin: 0 4px;
+  font-size: 0.75em;
+}
+
 /* Placeholder styling */
 .cm-editor .cm-content[data-placeholder]:empty::before {
   content: attr(data-placeholder);
