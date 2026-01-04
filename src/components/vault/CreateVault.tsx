@@ -63,22 +63,23 @@ export const CreateVault = memo(function CreateVault() {
 
   return (
     <div className="space-y-6">
-      <p>
-        Your vault is protected by a 12-word recovery phrase. This is the
-        <strong> only way</strong> to access your notes.
-      </p>
-
-      <p>
-        Write it down and keep it safe. If you lose it, your notes are
-        <strong> gone forever</strong>.
-      </p>
+      <div className="space-y-3 text-sm text-muted-foreground">
+        <p>
+          Your vault is protected by a 12-word recovery phrase. This is the
+          <strong className="text-foreground"> only way</strong> to access your notes.
+        </p>
+        <p>
+          Write it down and keep it safe. If you lose it, your notes are
+          <strong className="text-foreground"> gone forever</strong>.
+        </p>
+      </div>
 
       {mnemonic && <MnemonicDisplay mnemonic={mnemonic} />}
 
       {error && <ErrorMessage message={error} />}
 
       <Button disabled={!isReady} onClick={handleCreateNote}>
-        Create new note
+        Start writing
       </Button>
     </div>
   );

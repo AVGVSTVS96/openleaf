@@ -188,11 +188,17 @@ export const NoteEditor = memo(function NoteEditor({
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button size="icon" variant="outline" />}
+            render={
+              <Button
+                className="rounded-full shadow-lg border-border/50"
+                size="icon"
+                variant="outline"
+              />
+            }
           >
-            <Menu size={20} />
+            <Menu size={18} />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" side="top">
+          <DropdownMenuContent align="center" side="top" sideOffset={8}>
             <DropdownMenuItem onClick={handleBack}>
               <ArrowLeft size={16} />
               Back to notes

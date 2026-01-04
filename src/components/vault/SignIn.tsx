@@ -66,14 +66,16 @@ export const SignIn = memo(function SignIn() {
 
   return (
     <form className="space-y-6" onSubmit={handleSignIn}>
-      <p>Enter your 12-word recovery phrase to access your vault.</p>
+      <p className="text-sm text-muted-foreground">
+        Enter your 12-word recovery phrase to access your vault.
+      </p>
 
       <Textarea
         autoCapitalize="off"
         autoComplete="off"
         autoCorrect="off"
         onChange={(e) => setMnemonic(e.target.value)}
-        placeholder="Enter your recovery phrase..."
+        placeholder="word1 word2 word3 ..."
         rows={3}
         spellCheck={false}
         value={mnemonic}

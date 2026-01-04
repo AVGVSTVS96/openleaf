@@ -4,9 +4,9 @@ interface MnemonicDisplayProps {
 
 export function MnemonicDisplay({ mnemonic }: MnemonicDisplayProps) {
   return (
-    <div className="py-4">
-      <p className="mb-2 text-secondary">Your recovery phrase:</p>
-      <p className="leading-relaxed">{mnemonic}</p>
+    <div className="rounded-lg border border-border bg-muted/50 p-4">
+      <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">Recovery phrase</p>
+      <p className="leading-relaxed text-sm font-medium">{mnemonic}</p>
     </div>
   );
 }
