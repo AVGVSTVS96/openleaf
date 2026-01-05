@@ -7,7 +7,7 @@
 /* ProseMark theme customization */
 :root {
   --pm-header-mark-color: var(--muted-foreground);
-  --pm-link-color: var(--destructive);
+  --pm-link-color: var(--primary);
   --pm-muted-color: var(--muted-foreground);
   --pm-code-background-color: var(--muted);
   --pm-blockquote-vertical-line-background-color: var(--border);
@@ -26,15 +26,15 @@
 
 /* Fold gutter spacing */
 .cm-editor .cm-foldGutter {
-  width: 1.2em;
-  padding-right: 0.5em;
+  width: 1.4em;
+  padding-right: 0.4em;
 }
 
 .cm-editor .cm-foldGutter .cm-gutterElement {
-  padding: 0 2px;
+  padding: 0 4px;
   cursor: pointer;
   color: var(--muted-foreground);
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.15s ease;
 }
 
@@ -42,15 +42,9 @@
   opacity: 1;
 }
 
-/* Hide the ugly fold placeholder or style it better */
+/* Hide the fold placeholder completely */
 .cm-editor .cm-foldPlaceholder {
-  background: var(--muted);
-  border: none;
-  color: var(--muted-foreground);
-  border-radius: 3px;
-  padding: 0 6px;
-  margin: 0 4px;
-  font-size: 0.75em;
+  display: none;
 }
 
 /* Placeholder styling */
@@ -85,45 +79,10 @@ a:hover {
   text-decoration-color: var(--foreground);
 }
 
-/* Markdown-style headings */
-.md-h1::before {
-  content: "# ";
-  color: var(--muted-foreground);
-}
-.md-h2::before {
-  content: "## ";
-  color: var(--muted-foreground);
-}
-.md-h3::before {
-  content: "### ";
-  color: var(--muted-foreground);
-}
-
 :root {
-  /* OpenLeaf - refined minimalist design */
-  --radius: 0.375rem;
+  --radius: 0.625rem;
 
-  /* Refined color palette */
-  --background: #fafafa;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --popover: #ffffff;
-  --popover-foreground: #171717;
-  --primary: #171717;
-  --primary-foreground: #fafafa;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #525252;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --accent: #f5f5f5;
-  --accent-foreground: #171717;
-  --destructive: #ef4444;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #171717;
-
-  /* Original shadcn values (commented out)
+  /* Default shadcn neutral theme with oklch */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -138,17 +97,15 @@ a:hover {
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
+  --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  */
-
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -162,43 +119,39 @@ a:hover {
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.145 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.87 0 0);
+  --primary: oklch(0.985 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
+  --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
 }
 
 @theme inline {
-  /* OpenLeaf custom colors (for custom utility classes) */
-  --color-button: #171717;
-  --color-button-hover: #262626;
-
-  /* shadcn/Tailwind color mappings - these map :root vars to Tailwind classes */
+  /* shadcn/Tailwind color mappings */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
