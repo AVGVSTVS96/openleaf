@@ -1,31 +1,52 @@
 ---
+import { ArrowRight } from "lucide-react";
 import Footer from "../components/Footer.astro";
 import Layout from "../layouts/Layout.astro";
-import { APP_EMOJI } from "../lib/constants";
 ---
 
 <Layout title="OpenLeaf - Encrypted Notes">
-  <div class="flex-1 space-y-6">
-    <div class="text-2xl">{APP_EMOJI}</div>
+  <div class="flex-1 flex flex-col gap-16 pt-8 sm:pt-16">
 
-    <h1 class="text-xl font-bold md-h1">OpenLeaf</h1>
+    <header class="space-y-8">
+      <p class="text-xs font-medium tracking-widest uppercase text-primary">
+        End-to-end encrypted
+      </p>
 
-    <p>End to end encrypted offline markdown notes.</p>
+      <h1 class="text-4xl sm:text-5xl font-bold tracking-tight">
+        <span class="text-muted-foreground font-normal">#</span> OpenLeaf
+      </h1>
 
-    <p>No AI. Privately yours.</p>
+      <p class="text-lg text-muted-foreground max-w-sm leading-relaxed">
+        Private markdown notes that stay private. No cloud. No AI. Just you.
+      </p>
+    </header>
 
-    <div class="space-y-2 pt-2">
-      <a href="/create" class="block">Create new vault</a>
-      <a href="/signin" class="block">Sign in to existing vault</a>
+    <nav class="flex flex-col sm:flex-row gap-3">
+      <a
+        href="/create"
+        class="group inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold no-underline hover:bg-primary/90 transition-colors"
+      >
+        Create new vault
+        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+      </a>
+
+      <a
+        href="/signin"
+        class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium no-underline border border-border hover:bg-muted transition-colors"
+      >
+        Sign in to existing vault
+      </a>
+    </nav>
+
+    <div class="space-y-6 pt-4 border-t border-border">
+      <p class="text-sm text-muted-foreground leading-relaxed max-w-md">
+        Your vault key never leaves your device. We can't read your notes even if we wanted to.
+      </p>
+
+      <p class="text-xs font-mono text-muted-foreground/60">
+        100% free · No limits · No catch
+      </p>
     </div>
-
-    <p class="pt-4">100% free to use. No limits. No catch.</p>
-
-    <p class="text-secondary">
-      Your vault key never leaves your device or gets sent to the server –
-      it's only used to encrypt updates before they're sent, so no one except
-      you can read what you write.
-    </p>
   </div>
 
   <Footer />
