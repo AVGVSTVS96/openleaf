@@ -49,8 +49,9 @@ export const CreateVault = memo(function CreateVault() {
     createVault();
   }, []);
 
-  function handleCreateNote() {
-    window.location.href = ROUTES.NOTES;
+  function handleContinue() {
+    const noteId = crypto.randomUUID();
+    window.location.href = ROUTES.NOTE(noteId);
   }
 
   if (isLoading) {
@@ -62,23 +63,29 @@ export const CreateVault = memo(function CreateVault() {
   }
 
   return (
-    <div className="space-y-6">
-      <p>
-        Your vault is protected by a 12-word recovery phrase. This is the
-        <strong> only way</strong> to access your notes.
-      </p>
-
-      <p>
-        Write it down and keep it safe. If you lose it, your notes are
-        <strong> gone forever</strong>.
-      </p>
+    <div className="space-y-8">
+      <div className="space-y-4 text-muted-foreground text-sm leading-relaxed">
+        <p>
+          Your vault is protected by a 12-word recovery phrase. This is the
+          <strong className="text-foreground"> only way</strong> to access your
+          notes.
+        </p>
+        <p>
+          Write it down and keep it safe. If you lose it, your notes are
+          <strong className="text-foreground"> gone forever</strong>.
+        </p>
+      </div>
 
       {mnemonic && <MnemonicDisplay mnemonic={mnemonic} />}
 
       {error && <ErrorMessage message={error} />}
 
-      <Button disabled={!isReady} onClick={handleCreateNote}>
-        Create new note
+      <Button
+        className="h-10 px-6 font-semibold text-sm"
+        disabled={!isReady}
+        onClick={handleContinue}
+      >
+        Start writing
       </Button>
     </div>
   );
