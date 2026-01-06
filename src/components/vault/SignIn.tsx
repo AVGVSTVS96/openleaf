@@ -65,15 +65,18 @@ export const SignIn = memo(function SignIn() {
   }
 
   return (
-    <form className="space-y-6" onSubmit={handleSignIn}>
-      <p>Enter your 12-word recovery phrase to access your vault.</p>
+    <form className="space-y-8" onSubmit={handleSignIn}>
+      <p className="text-muted-foreground text-sm leading-relaxed">
+        Enter your 12-word recovery phrase to access your vault.
+      </p>
 
       <Textarea
         autoCapitalize="off"
         autoComplete="off"
         autoCorrect="off"
+        className="font-mono text-sm"
         onChange={(e) => setMnemonic(e.target.value)}
-        placeholder="Enter your recovery phrase..."
+        placeholder="word1 word2 word3 ..."
         rows={3}
         spellCheck={false}
         value={mnemonic}
@@ -81,7 +84,11 @@ export const SignIn = memo(function SignIn() {
 
       {error && <ErrorMessage message={error} />}
 
-      <Button disabled={isSigningIn || !mnemonic.trim()} type="submit">
+      <Button
+        className="h-10 px-6 font-semibold text-sm"
+        disabled={isSigningIn || !mnemonic.trim()}
+        type="submit"
+      >
         {isSigningIn ? "Signing in..." : "Sign in"}
       </Button>
     </form>
