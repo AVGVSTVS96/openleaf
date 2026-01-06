@@ -1,17 +1,17 @@
-import { EditorState, type Extension } from "@codemirror/state";
-import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
+import { EditorState, type Extension } from "@codemirror/state";
+import { placeholder as cmPlaceholder, EditorView } from "@codemirror/view";
 import { GFM } from "@lezer/markdown";
 import {
-  prosemarkBasicSetup,
   prosemarkBaseThemeSetup,
+  prosemarkBasicSetup,
   prosemarkMarkdownSyntaxExtensions,
 } from "@prosemark/core";
 import { useEffect, useRef, useState } from "react";
+import type { HighlighterCore } from "shiki/core";
 import { createShikiPlugin } from "@/lib/codemirror/shiki-plugin";
 import { getHighlighter } from "@/lib/highlighter";
-import type { HighlighterCore } from "shiki/core";
 
 interface MarkdownEditorProps {
   content: string;
@@ -58,9 +58,7 @@ function buildExtensions(
         onChangeRef.current?.(update.state.doc.toString());
       }
     }),
-    EditorView.contentAttributes.of({
-      "data-placeholder": placeholder,
-    }),
+    cmPlaceholder(placeholder),
   ];
 
   if (highlighter) {
@@ -148,5 +146,5 @@ export function MarkdownEditor({
     }
   }, [content]);
 
-  return <div ref={containerRef} className="flex-1" />;
+  return <div className="flex-1" ref={containerRef} />;
 }
