@@ -1,4 +1,4 @@
-import { User } from "lucide-react";
+import { FileText, User } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,46 +95,79 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
     return <LoadingMessage message="Loading..." />;
   }
 
+  const hasNotes = notes.length > 0;
+
   return (
-    <div className="flex-1 space-y-6">
-      <Input
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search notes"
-        type="text"
-        value={searchQuery}
-      />
-
-      <div className="space-y-2">
-        {filteredNotes.length === 0 ? (
-          <p className="text-secondary">
-            {searchQuery ? "No notes found." : "No notes yet."}
-          </p>
-        ) : (
-          filteredNotes.map((note) => (
-            <Button
-              className="w-full justify-start"
-              key={note.id}
-              onClick={() => onNavigate?.(ROUTES.NOTE(note.id))}
-              variant="ghost"
-            >
-              {note.title || "Untitled"}
-            </Button>
-          ))
-        )}
-      </div>
-
-      <div className="flex items-center gap-4 pt-4">
-        <Button onClick={handleCreateNote}>Create note</Button>
-
+    <div className="flex flex-1 flex-col gap-8">
+      <header className="flex items-center justify-between gap-4">
+        <h1 className="font-bold text-2xl tracking-tight">
+          <span className="font-normal text-muted-foreground">#</span> Notes
+        </h1>
         <Button
-          className="rounded-full"
           onClick={() => setShowAccount(!showAccount)}
           size="icon"
           variant="outline"
         >
-          <User size={20} />
+          <User size={16} />
         </Button>
+      </header>
+
+      {hasNotes && (
+        <Input
+          className="text-sm"
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search notes..."
+          type="text"
+          value={searchQuery}
+        />
+      )}
+
+      <div className="flex-1 space-y-1">
+        {filteredNotes.length > 0 &&
+          filteredNotes.map((note) => (
+            <button
+              className="w-full border-border border-b px-3 py-2.5 text-left text-sm transition-colors last:border-0 hover:bg-muted"
+              key={note.id}
+              onClick={() => onNavigate?.(ROUTES.NOTE(note.id))}
+              type="button"
+            >
+              {note.title || "Untitled"}
+            </button>
+          ))}
+
+        {filteredNotes.length === 0 && hasNotes && (
+          <p className="py-4 text-muted-foreground text-sm">No notes found.</p>
+        )}
+
+        {filteredNotes.length === 0 && !hasNotes && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="mb-4 rounded-full bg-muted p-4">
+              <FileText className="text-muted-foreground" size={32} />
+            </div>
+            <p className="mb-2 font-medium text-foreground">No notes yet</p>
+            <p className="mb-6 text-muted-foreground text-sm">
+              Create your first note to get started
+            </p>
+            <Button
+              className="h-10 px-6 font-semibold text-sm"
+              onClick={handleCreateNote}
+            >
+              Create new note
+            </Button>
+          </div>
+        )}
       </div>
+
+      {hasNotes && (
+        <div className="mt-auto pt-8">
+          <Button
+            className="h-10 px-6 font-semibold text-sm"
+            onClick={handleCreateNote}
+          >
+            Create new note
+          </Button>
+        </div>
+      )}
 
       <AccountModal
         onOpenChange={setShowAccount}
