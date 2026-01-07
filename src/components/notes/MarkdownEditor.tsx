@@ -1,13 +1,43 @@
+import {
+  autocompletion,
+  closeBrackets,
+  closeBracketsKeymap,
+  completionKeymap,
+} from "@codemirror/autocomplete";
+import {
+  defaultKeymap,
+  history,
+  historyKeymap,
+  indentWithTab,
+} from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
-import { foldGutter } from "@codemirror/language";
+import {
+  bracketMatching,
+  foldGutter,
+  foldKeymap,
+  indentOnInput,
+} from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
+import { lintKeymap } from "@codemirror/lint";
+import { searchKeymap } from "@codemirror/search";
 import { EditorState, type Extension } from "@codemirror/state";
-import { placeholder as cmPlaceholder, EditorView } from "@codemirror/view";
+import {
+  dropCursor,
+  EditorView,
+  keymap,
+  placeholder as cmPlaceholder,
+} from "@codemirror/view";
 import { GFM } from "@lezer/markdown";
 import {
+  clickLinkExtension,
+  codeBlockDecorationsExtension,
+  defaultClickLinkHandler,
+  defaultFoldableSyntaxExtensions,
+  defaultHideExtensions,
   prosemarkBaseThemeSetup,
-  prosemarkBasicSetup,
   prosemarkMarkdownSyntaxExtensions,
+  revealBlockOnArrowExtension,
+  softIndentExtension,
 } from "@prosemark/core";
 import { useEffect, useRef, useState } from "react";
 import type { HighlighterCore } from "shiki/core";
@@ -38,10 +68,6 @@ const baseTheme = EditorView.theme({
   ".cm-placeholder": {
     color: "var(--muted-foreground)",
   },
-  // Hide FIRST foldGutter (from prosemarkBasicSetup), show only our custom one
-  ".cm-foldGutter:not(.cm-foldGutter ~ .cm-foldGutter)": {
-    display: "none !important",
-  },
   ".cm-foldGutter": {
     width: "1.4em",
     minWidth: "1.4em",
@@ -64,7 +90,31 @@ function buildExtensions(
       codeLanguages: languages,
       extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
     }),
-    prosemarkBasicSetup(),
+    // Prosemark extensions
+    defaultHideExtensions,
+    defaultFoldableSyntaxExtensions,
+    revealBlockOnArrowExtension,
+    clickLinkExtension,
+    defaultClickLinkHandler,
+    softIndentExtension,
+    codeBlockDecorationsExtension,
+    // CodeMirror extensions
+    history(),
+    dropCursor(),
+    indentOnInput(),
+    bracketMatching(),
+    closeBrackets(),
+    autocompletion(),
+    keymap.of([
+      ...closeBracketsKeymap,
+      ...defaultKeymap,
+      ...searchKeymap,
+      ...historyKeymap,
+      ...foldKeymap,
+      ...completionKeymap,
+      ...lintKeymap,
+      indentWithTab,
+    ]),
     // Custom foldGutter with rotating caret
     foldGutter({
       markerDOM: (open) => {
@@ -78,6 +128,8 @@ function buildExtensions(
         return span;
       },
     }),
+    EditorView.lineWrapping,
+    // Theme
     prosemarkBaseThemeSetup(),
     baseTheme,
     EditorView.updateListener.of((update) => {
