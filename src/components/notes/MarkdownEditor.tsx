@@ -1,4 +1,5 @@
 import { markdown } from "@codemirror/lang-markdown";
+import { foldGutter } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
 import { EditorState, type Extension } from "@codemirror/state";
 import { placeholder as cmPlaceholder, EditorView } from "@codemirror/view";
@@ -37,6 +38,20 @@ const baseTheme = EditorView.theme({
   ".cm-placeholder": {
     color: "var(--muted-foreground)",
   },
+  // Hide FIRST foldGutter (from prosemarkBasicSetup), show only our custom one
+  ".cm-foldGutter:not(.cm-foldGutter ~ .cm-foldGutter)": {
+    display: "none !important",
+  },
+  ".cm-foldGutter": {
+    width: "1.4em",
+    minWidth: "1.4em",
+  },
+  ".cm-foldGutter .cm-gutterElement": {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0 0.3em 0 0",
+  },
 });
 
 function buildExtensions(
@@ -50,9 +65,21 @@ function buildExtensions(
       extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
     }),
     prosemarkBasicSetup(),
+    // Custom foldGutter with rotating caret
+    foldGutter({
+      markerDOM: (open) => {
+        const span = document.createElement("span");
+        span.textContent = "›";
+        span.style.display = "inline-flex";
+        span.style.alignItems = "center";
+        span.style.justifyContent = "center";
+        span.style.transition = "transform 0.15s ease";
+        span.style.transform = open ? "rotate(90deg)" : "rotate(0deg)";
+        return span;
+      },
+    }),
     prosemarkBaseThemeSetup(),
     baseTheme,
-    EditorView.lineWrapping,
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         onChangeRef.current?.(update.state.doc.toString());
