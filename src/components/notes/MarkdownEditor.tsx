@@ -13,6 +13,7 @@ import {
 import { markdown } from "@codemirror/lang-markdown";
 import {
   bracketMatching,
+  codeFolding,
   foldGutter,
   foldKeymap,
   indentOnInput,
@@ -22,10 +23,10 @@ import { lintKeymap } from "@codemirror/lint";
 import { searchKeymap } from "@codemirror/search";
 import { EditorState, type Extension } from "@codemirror/state";
 import {
+  placeholder as cmPlaceholder,
   dropCursor,
   EditorView,
   keymap,
-  placeholder as cmPlaceholder,
 } from "@codemirror/view";
 import { GFM } from "@lezer/markdown";
 import {
@@ -115,6 +116,10 @@ function buildExtensions(
       ...lintKeymap,
       indentWithTab,
     ]),
+    // Hide the "…" placeholder at end of folded content
+    codeFolding({
+      placeholderDOM: () => document.createElement("span"),
+    }),
     // Custom foldGutter with rotating caret
     foldGutter({
       markerDOM: (open) => {
