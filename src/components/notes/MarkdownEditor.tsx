@@ -79,6 +79,20 @@ const baseTheme = EditorView.theme({
     justifyContent: "center",
     padding: "0 0.3em 0 0",
   },
+  // Code block styling
+  ".cm-fenced-code-line": {
+    paddingLeft: "1rem",
+    paddingRight: "1rem",
+    marginLeft: "0",
+  },
+  ".cm-code-block-info": {
+    display: "flex",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  ".cm-code-block-lang-container": {
+    textTransform: "lowercase",
+  },
 });
 
 function buildExtensions(
