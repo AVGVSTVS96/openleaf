@@ -1,4 +1,4 @@
-import { FileText, User } from "lucide-react";
+import { FileText, PenLine, User } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,23 +123,22 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
       )}
 
       <div className="flex-1 space-y-1">
-        {filteredNotes.length > 0 &&
-          filteredNotes.map((note) => (
-            <button
-              className="w-full border-border border-b px-3 py-2.5 text-left text-sm transition-colors last:border-0 hover:bg-muted"
-              key={note.id}
-              onClick={() => onNavigate?.(ROUTES.NOTE(note.id))}
-              type="button"
-            >
-              {note.title || "Untitled"}
-            </button>
-          ))}
+        {filteredNotes.map((note) => (
+          <button
+            className="w-full border-border border-b px-3 py-2.5 text-left text-sm transition-colors last:border-0 hover:bg-muted"
+            key={note.id}
+            onClick={() => onNavigate?.(ROUTES.NOTE(note.id))}
+            type="button"
+          >
+            {note.title || "Untitled"}
+          </button>
+        ))}
 
         {filteredNotes.length === 0 && hasNotes && (
           <p className="py-4 text-muted-foreground text-sm">No notes found.</p>
         )}
 
-        {filteredNotes.length === 0 && !hasNotes && (
+        {!hasNotes && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="mb-4 rounded-full bg-muted p-4">
               <FileText className="text-muted-foreground" size={32} />
@@ -159,12 +158,13 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
       </div>
 
       {hasNotes && (
-        <div className="mt-auto pt-8">
+        <div className="mb-8 mt-auto">
           <Button
-            className="h-10 px-6 font-semibold text-sm"
+            className="h-10 gap-2 px-5 font-semibold text-sm"
             onClick={handleCreateNote}
           >
-            Create new note
+            <PenLine size={16} />
+            New note
           </Button>
         </div>
       )}

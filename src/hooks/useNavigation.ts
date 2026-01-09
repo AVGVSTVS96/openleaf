@@ -1,30 +1,27 @@
 import { useCallback } from "react";
+import { ROUTES } from "../lib/constants";
 import type { View } from "../lib/types";
 
-// Regex for matching note edit routes
-const NOTE_ROUTE_REGEX = /^\/notes\/([^/]+)$/;
+const NOTES_PREFIX = `${ROUTES.NOTES}/`;
+
+function getViewUrl(view: View): string {
+  return view.type === "list" ? ROUTES.NOTES : ROUTES.NOTE(view.noteId);
+}
 
 export function useNavigation() {
   const navigate = useCallback((view: View) => {
     try {
-      const url = view.type === "list" ? "/notes" : `/notes/${view.noteId}`;
-      window.history.pushState({}, "", url);
+      window.history.pushState({}, "", getViewUrl(view));
     } catch (error) {
       console.error("Navigation error:", error);
-      // Fallback to direct navigation
-      if (view.type === "list") {
-        window.location.href = "/notes";
-      } else {
-        window.location.href = `/notes/${view.noteId}`;
-      }
+      window.location.href = getViewUrl(view);
     }
   }, []);
 
   const getCurrentView = useCallback((): View => {
     const path = window.location.pathname;
-    const match = path.match(NOTE_ROUTE_REGEX);
-    if (match) {
-      return { type: "edit", noteId: match[1] };
+    if (path.startsWith(NOTES_PREFIX)) {
+      return { type: "edit", noteId: path.slice(NOTES_PREFIX.length) };
     }
     return { type: "list" };
   }, []);
