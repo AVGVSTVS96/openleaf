@@ -1,17 +1,49 @@
-import { EditorState, type Extension } from "@codemirror/state";
-import { EditorView } from "@codemirror/view";
+import {
+  autocompletion,
+  closeBrackets,
+  closeBracketsKeymap,
+  completionKeymap,
+} from "@codemirror/autocomplete";
+import {
+  defaultKeymap,
+  history,
+  historyKeymap,
+  indentWithTab,
+} from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
+import {
+  bracketMatching,
+  codeFolding,
+  foldGutter,
+  foldKeymap,
+  indentOnInput,
+} from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
+import { lintKeymap } from "@codemirror/lint";
+import { searchKeymap } from "@codemirror/search";
+import { EditorState, type Extension } from "@codemirror/state";
+import {
+  placeholder as cmPlaceholder,
+  dropCursor,
+  EditorView,
+  keymap,
+} from "@codemirror/view";
 import { GFM } from "@lezer/markdown";
 import {
-  prosemarkBasicSetup,
+  clickLinkExtension,
+  codeBlockDecorationsExtension,
+  defaultClickLinkHandler,
+  defaultFoldableSyntaxExtensions,
+  defaultHideExtensions,
   prosemarkBaseThemeSetup,
   prosemarkMarkdownSyntaxExtensions,
+  revealBlockOnArrowExtension,
+  softIndentExtension,
 } from "@prosemark/core";
 import { useEffect, useRef, useState } from "react";
+import type { HighlighterCore } from "shiki/core";
 import { createShikiPlugin } from "@/lib/codemirror/shiki-plugin";
 import { getHighlighter } from "@/lib/highlighter";
-import type { HighlighterCore } from "shiki/core";
 
 interface MarkdownEditorProps {
   content: string;
@@ -37,6 +69,30 @@ const baseTheme = EditorView.theme({
   ".cm-placeholder": {
     color: "var(--muted-foreground)",
   },
+  ".cm-foldGutter": {
+    width: "1.4em",
+    minWidth: "1.4em",
+  },
+  ".cm-foldGutter .cm-gutterElement": {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0 0.3em 0 0",
+  },
+  // Code block styling
+  ".cm-fenced-code-line": {
+    paddingLeft: "1rem",
+    paddingRight: "1rem",
+    marginLeft: "0",
+  },
+  ".cm-code-block-info": {
+    display: "flex",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  ".cm-code-block-lang-container": {
+    textTransform: "lowercase",
+  },
 });
 
 function buildExtensions(
@@ -49,18 +105,58 @@ function buildExtensions(
       codeLanguages: languages,
       extensions: [GFM, prosemarkMarkdownSyntaxExtensions],
     }),
-    prosemarkBasicSetup(),
+    // Prosemark extensions
+    defaultHideExtensions,
+    defaultFoldableSyntaxExtensions,
+    revealBlockOnArrowExtension,
+    clickLinkExtension,
+    defaultClickLinkHandler,
+    softIndentExtension,
+    codeBlockDecorationsExtension,
+    // CodeMirror extensions
+    history(),
+    dropCursor(),
+    indentOnInput(),
+    bracketMatching(),
+    closeBrackets(),
+    autocompletion(),
+    keymap.of([
+      ...closeBracketsKeymap,
+      ...defaultKeymap,
+      ...searchKeymap,
+      ...historyKeymap,
+      ...foldKeymap,
+      ...completionKeymap,
+      ...lintKeymap,
+      indentWithTab,
+    ]),
+    // Hide the "…" placeholder at end of folded content
+    codeFolding({
+      placeholderDOM: () => document.createElement("span"),
+    }),
+    // Custom foldGutter with rotating caret
+    foldGutter({
+      markerDOM: (open) => {
+        const span = document.createElement("span");
+        span.textContent = "›";
+        span.style.display = "inline-flex";
+        span.style.alignItems = "center";
+        span.style.justifyContent = "center";
+        span.style.transition = "transform 0.15s ease";
+        span.style.transform = open ? "rotate(90deg)" : "rotate(0deg)";
+        return span;
+      },
+    }),
+    EditorView.lineWrapping,
+    // Theme
     prosemarkBaseThemeSetup(),
     baseTheme,
-    EditorView.lineWrapping,
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         onChangeRef.current?.(update.state.doc.toString());
       }
     }),
-    EditorView.contentAttributes.of({
-      "data-placeholder": placeholder,
-    }),
+    cmPlaceholder(placeholder),
   ];
 
   if (highlighter) {
@@ -148,5 +244,5 @@ export function MarkdownEditor({
     }
   }, [content]);
 
-  return <div ref={containerRef} className="flex-1" />;
+  return <div className="flex-1" ref={containerRef} />;
 }

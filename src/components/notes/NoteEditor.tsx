@@ -1,5 +1,6 @@
-import { ArrowLeft, Menu, Trash2 } from "lucide-react";
+import { Menu, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoadingMessage } from "@/components/ui/loading-message";
-import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { AUTOSAVE_DELAY_MS, ROUTES } from "@/lib/constants";
 import { decryptNoteData, encryptNoteData } from "@/lib/crypto";
@@ -178,25 +178,22 @@ export const NoteEditor = memo(function NoteEditor({
   }
 
   return (
-    <div className="flex flex-1 flex-col">
-      <MarkdownEditor
-        content={content}
-        onChange={handleContentChange}
-        placeholder="Start writing..."
-      />
-
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
+    <div className="flex flex-1 flex-col gap-6">
+      <header className="flex items-center justify-between">
+        <button
+          className="inline-flex items-center gap-1 text-muted-foreground text-sm transition-colors hover:text-foreground"
+          onClick={handleBack}
+          type="button"
+        >
+          <span className="text-xs">←</span> Back
+        </button>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button size="icon" variant="outline" />}
+            render={<Button className="h-8 w-8" size="icon" variant="ghost" />}
           >
-            <Menu size={20} />
+            <Menu size={16} />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" side="top">
-            <DropdownMenuItem onClick={handleBack}>
-              <ArrowLeft size={16} />
-              Back to notes
-            </DropdownMenuItem>
+          <DropdownMenuContent align="end">
             <DropdownMenuItem
               onClick={() => setShowDeleteDialog(true)}
               variant="destructive"
@@ -206,7 +203,13 @@ export const NoteEditor = memo(function NoteEditor({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </header>
+
+      <MarkdownEditor
+        content={content}
+        onChange={handleContentChange}
+        placeholder="Start writing..."
+      />
 
       <AlertDialog onOpenChange={setShowDeleteDialog} open={showDeleteDialog}>
         <AlertDialogContent>

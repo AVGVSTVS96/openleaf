@@ -7,13 +7,11 @@ import type { View } from "@/lib/types";
 import { NoteEditor } from "./NoteEditor";
 import { NoteList } from "./NoteList";
 
+const NOTES_PREFIX = `${ROUTES.NOTES}/`;
+
 function parsePathToView(path: string): View {
-  if (path === ROUTES.NOTES) {
-    return { type: "list" };
-  }
-  if (path.startsWith(`${ROUTES.NOTES}/`)) {
-    const noteId = path.replace(`${ROUTES.NOTES}/`, "");
-    return { type: "edit", noteId };
+  if (path.startsWith(NOTES_PREFIX)) {
+    return { type: "edit", noteId: path.slice(NOTES_PREFIX.length) };
   }
   return { type: "list" };
 }

@@ -1,17 +1,50 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
 
 /* ProseMark theme customization */
 :root {
   --pm-header-mark-color: var(--muted-foreground);
-  --pm-link-color: var(--destructive);
+  --pm-link-color: var(--primary);
   --pm-muted-color: var(--muted-foreground);
   --pm-code-background-color: var(--muted);
   --pm-blockquote-vertical-line-background-color: var(--border);
   --pm-cursor-color: var(--foreground);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.65 0.18 132);
+  --primary-foreground: oklch(0.99 0.03 121);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.65 0.18 132);
+  --accent-foreground: oklch(0.99 0.03 121);
+  --destructive: oklch(0.58 0.22 27);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.9 0.18 127);
+  --chart-2: oklch(0.85 0.21 129);
+  --chart-3: oklch(0.77 0.2 131);
+  --chart-4: oklch(0.65 0.18 132);
+  --chart-5: oklch(0.53 0.14 132);
+  --radius: 0;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.65 0.18 132);
+  --sidebar-primary-foreground: oklch(0.99 0.03 121);
+  --sidebar-accent: oklch(0.65 0.18 132);
+  --sidebar-accent-foreground: oklch(0.99 0.03 121);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 /* Editor container */
@@ -37,20 +70,9 @@ html {
 }
 
 body {
-  font-family: var(--font-mono);
-  color: var(--foreground);
   min-height: 100vh;
   font-size: 14px;
   line-height: 1.7;
-}
-
-a {
-  color: var(--destructive);
-  text-decoration: underline;
-}
-
-a:hover {
-  opacity: 0.8;
 }
 
 /* Markdown-style headings */
@@ -67,67 +89,6 @@ a:hover {
   color: var(--muted-foreground);
 }
 
-:root {
-  /* OpenLeaf overrides - no border radius */
-  --radius: 0;
-  /* --radius: 0.625rem; */
-
-  /* OpenLeaf color overrides */
-  --background: #faf8f5;
-  --foreground: #000000;
-  --card: #faf8f5;
-  --card-foreground: #000000;
-  --popover: #faf8f5;
-  --popover-foreground: #000000;
-  --primary: #e8e4df;
-  --primary-foreground: #000000;
-  --secondary: #888888;
-  --secondary-foreground: #000000;
-  --muted: #e8e4df;
-  --muted-foreground: #888888;
-  --accent: #e8e4df;
-  --accent-foreground: #000000;
-  --destructive: #dc2626;
-  --border: #888888;
-  --input: #888888;
-  --ring: #000000;
-
-  /* Original shadcn values (commented out)
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  */
-
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -135,29 +96,29 @@ a:hover {
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.87 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --primary: oklch(0.77 0.2 131);
+  --primary-foreground: oklch(0.27 0.07 132);
+  --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.77 0.2 131);
+  --accent-foreground: oklch(0.27 0.07 132);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+  --chart-1: oklch(0.9 0.18 127);
+  --chart-2: oklch(0.85 0.21 129);
+  --chart-3: oklch(0.77 0.2 131);
+  --chart-4: oklch(0.65 0.18 132);
+  --chart-5: oklch(0.53 0.14 132);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.85 0.21 129);
+  --sidebar-primary-foreground: oklch(0.27 0.07 132);
+  --sidebar-accent: oklch(0.77 0.2 131);
+  --sidebar-accent-foreground: oklch(0.27 0.07 132);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
@@ -211,6 +172,7 @@ a:hover {
 
   /* Font */
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
+  --font-sans: "Inter Variable", sans-serif;
 }
 
 @layer base {
@@ -218,6 +180,15 @@ a:hover {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply font-sans bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .link {
+    @apply text-primary underline underline-offset-[3px] transition-colors hover:text-primary/80;
   }
 }

@@ -6,4 +6,6 @@ interface Props {
 const { href } = Astro.props;
 ---
 
-<a href={href} class="text-secondary no-underline hover:text-primary">← Back</a>
+<a href={href} class="inline-flex items-center gap-1 text-sm text-muted-foreground no-underline hover:text-foreground transition-colors">
+  <span class="text-xs">←</span> Back
+</a>

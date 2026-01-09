@@ -9,23 +9,23 @@ let currentVaultId: string | null = null;
 // Helper to check if we're in the browser
 const isBrowser = typeof window !== "undefined";
 
-export function setEncryptionKey(key: CryptoKey): void {
+export function setEncryptionKey(key: CryptoKey) {
   encryptionKey = key;
 }
 
-export function getEncryptionKey(): CryptoKey | null {
+export function getEncryptionKey() {
   return encryptionKey;
 }
 
-export function setCurrentVaultId(vaultId: string): void {
+export function setCurrentVaultId(vaultId: string) {
   currentVaultId = vaultId;
 }
 
-export function getCurrentVaultId(): string | null {
+export function getCurrentVaultId() {
   return currentVaultId;
 }
 
-export function clearEncryptionKey(): void {
+export function clearEncryptionKey() {
   encryptionKey = null;
   currentVaultId = null;
   if (isBrowser) {
@@ -33,12 +33,11 @@ export function clearEncryptionKey(): void {
   }
 }
 
-export function isAuthenticated(): boolean {
+export function isAuthenticated() {
   return encryptionKey !== null && currentVaultId !== null;
 }
 
-// Temporarily save auth state to survive page navigation
-export function saveAuthForNavigation(seed: Uint8Array, vaultId: string): void {
+export function saveAuthForNavigation(seed: Uint8Array, vaultId: string) {
   if (!isBrowser) {
     return;
   }
@@ -49,7 +48,6 @@ export function saveAuthForNavigation(seed: Uint8Array, vaultId: string): void {
   );
 }
 
-// Restore auth state after page navigation (returns true if restored)
 export async function restoreAuthFromNavigation(): Promise<boolean> {
   if (!isBrowser) {
     return false;

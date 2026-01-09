@@ -1,6 +1,6 @@
+import type { HighlighterCore } from "shiki/core";
 import { createHighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
-import type { HighlighterCore } from "shiki/core";
 
 let highlighterPromise: Promise<HighlighterCore> | null = null;
 
@@ -9,7 +9,7 @@ let highlighterPromise: Promise<HighlighterCore> | null = null;
  * Uses the JavaScript RegExp engine for smaller bundle size (no WASM).
  * Languages/themes are dynamically imported for optimal code splitting.
  */
-export async function getHighlighter(): Promise<HighlighterCore> {
+export function getHighlighter(): Promise<HighlighterCore> {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighterCore({
       themes: [
