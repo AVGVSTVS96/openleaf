@@ -1,7 +1,7 @@
 ---
 import { ErrorBoundary } from "../../components/ErrorBoundary";
 import Footer from "../../components/Footer.astro";
-import { NotesApp } from "../../components/notes/NotesApp";
+import { NotesAppWithProvider } from "../../components/notes/NotesAppWithProvider";
 import Layout from "../../layouts/Layout.astro";
 
 // Disable prerendering - all routes handled client-side
@@ -10,7 +10,7 @@ export const prerender = false;
 
 <Layout title="Notes - OpenLeaf">
   <ErrorBoundary>
-    <NotesApp client:load />
+    <NotesAppWithProvider client:load />
   </ErrorBoundary>
   <Footer />
 </Layout>

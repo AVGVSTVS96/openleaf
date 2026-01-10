@@ -19,6 +19,24 @@ export class OpenLeafDB extends Dexie {
       vault: "id",
       notes: "id, vaultId, updatedAt",
     });
+
+    // Add sync fields for remote synchronization
+    this.version(3)
+      .stores({
+        vault: "id",
+        notes: "id, vaultId, updatedAt, syncStatus, version",
+      })
+      .upgrade((tx) => {
+        // Mark all existing notes as pending sync with version 1
+        return tx
+          .table("notes")
+          .toCollection()
+          .modify((note) => {
+            note.syncStatus = "pending";
+            note.version = 1;
+            note.deleted = false;
+          });
+      });
   }
 }
 
