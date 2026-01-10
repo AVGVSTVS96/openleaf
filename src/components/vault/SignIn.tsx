@@ -1,12 +1,14 @@
 import { memo, useState } from "react";
+import { convex } from "@/components/providers/ConvexClientProvider";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Textarea } from "@/components/ui/textarea";
 import { ROUTES } from "@/lib/constants";
-import { deriveKey, verifyKey } from "@/lib/crypto";
+import { deriveKey, generateVaultId, verifyKey } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { mnemonicToSeed, validateMnemonic } from "@/lib/mnemonic";
 import { saveAuthForNavigation } from "@/lib/store";
+import { api } from "../../../convex/_generated/api";
 
 export const SignIn = memo(function SignIn() {
   const [mnemonic, setMnemonic] = useState("");
@@ -31,24 +33,52 @@ export const SignIn = memo(function SignIn() {
     try {
       const seed = await mnemonicToSeed(trimmedMnemonic);
       const key = await deriveKey(seed);
-      const vaults = await db.vault.toArray();
 
-      if (vaults.length === 0) {
-        setError("No vault found. Please create a new vault first.");
-        setIsSigningIn(false);
-        return;
+      // Always compute the canonical vaultId from mnemonic
+      const canonicalVaultId = await generateVaultId(trimmedMnemonic);
+      let matchedVaultId: string | null = null;
+
+      // First, check Convex for the vault (source of truth for synced vaults)
+      if (convex) {
+        const remoteVault = await convex.query(api.vaults.get, {
+          vaultId: canonicalVaultId,
+        });
+
+        if (remoteVault) {
+          // Verify the key against the remote vault's encryptedVerifier
+          if (await verifyKey(remoteVault.encryptedVerifier, key)) {
+            // Create/update local vault entry from remote
+            await db.vault.put({
+              id: remoteVault.vaultId,
+              encryptedVerifier: remoteVault.encryptedVerifier,
+              createdAt: remoteVault.createdAt,
+            });
+            matchedVaultId = remoteVault.vaultId;
+          }
+        }
       }
 
-      let matchedVaultId: string | null = null;
-      for (const vault of vaults) {
-        if (await verifyKey(vault.encryptedVerifier, key)) {
-          matchedVaultId = vault.id;
-          break;
+      // Fallback: check local vault with canonical id (offline mode)
+      if (!matchedVaultId) {
+        const localVault = await db.vault.get(canonicalVaultId);
+        if (localVault && (await verifyKey(localVault.encryptedVerifier, key))) {
+          matchedVaultId = canonicalVaultId;
+        }
+      }
+
+      // Last resort: check all local vaults (for old vaults created before sync)
+      if (!matchedVaultId) {
+        const vaults = await db.vault.toArray();
+        for (const vault of vaults) {
+          if (await verifyKey(vault.encryptedVerifier, key)) {
+            matchedVaultId = vault.id;
+            break;
+          }
         }
       }
 
       if (!matchedVaultId) {
-        setError("Invalid recovery phrase for this vault.");
+        setError("No vault found. Please create a new vault first.");
         setIsSigningIn(false);
         return;
       }

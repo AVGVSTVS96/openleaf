@@ -1,6 +1,7 @@
 import { Menu, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
+import { useSync } from "@/components/providers/SyncProvider";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,7 @@ export const NoteEditor = memo(function NoteEditor({
   onNavigate,
 }: NoteEditorProps) {
   const { isLoading: isAuthLoading, key, vaultId } = useRequireAuth();
+  const { engine: syncEngine } = useSync();
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -103,25 +105,47 @@ export const NoteEditor = memo(function NoteEditor({
           key
         );
 
+        const now = Date.now();
+
         if (isNewNoteRef.current) {
           // First save - create note
-          const now = Date.now();
-          await db.notes.add({
+          const note = {
             id: noteId,
             vaultId,
             encryptedData,
             iv,
             createdAt: now,
             updatedAt: now,
-          });
+            version: 1,
+            syncStatus: "pending" as const,
+          };
+          await db.notes.add(note);
           isNewNoteRef.current = false;
+
+          // Sync to remote
+          if (syncEngine) {
+            syncEngine.pushNote(note);
+          }
         } else {
           // Update existing note
+          const existingNote = await db.notes.get(noteId);
+          const newVersion = (existingNote?.version || 0) + 1;
+
           await db.notes.update(noteId, {
             encryptedData,
             iv,
-            updatedAt: Date.now(),
+            updatedAt: now,
+            version: newVersion,
+            syncStatus: "pending",
           });
+
+          // Sync to remote
+          if (syncEngine) {
+            const updatedNote = await db.notes.get(noteId);
+            if (updatedNote) {
+              syncEngine.pushNote(updatedNote);
+            }
+          }
         }
 
         lastSavedContentRef.current = newContent;
@@ -129,7 +153,7 @@ export const NoteEditor = memo(function NoteEditor({
         console.error("Failed to save note:", err);
       }
     },
-    [noteId, key, vaultId]
+    [noteId, key, vaultId, syncEngine]
   );
 
   function handleContentChange(newContent: string) {
@@ -146,7 +170,13 @@ export const NoteEditor = memo(function NoteEditor({
 
   async function handleDelete() {
     try {
-      await db.notes.delete(noteId);
+      // Sync deletion to remote first, then delete locally
+      if (syncEngine) {
+        await syncEngine.pushDelete(noteId);
+      } else {
+        // No sync engine - just delete locally
+        await db.notes.delete(noteId);
+      }
       onNavigate?.(ROUTES.NOTES);
     } catch (err) {
       console.error("Failed to delete note:", err);
