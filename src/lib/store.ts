@@ -7,6 +7,25 @@ let encryptionKey: CryptoKey | null = null;
 let currentVaultId: string | null = null;
 let currentMnemonic: string | null = null;
 
+// Event-based auth signaling (eliminates polling)
+type AuthListener = () => void;
+const authListeners = new Set<AuthListener>();
+
+export function onAuthReady(callback: AuthListener): () => void {
+  // If already authenticated, call immediately
+  if (isAuthenticated()) {
+    callback();
+    return () => {};
+  }
+  authListeners.add(callback);
+  return () => authListeners.delete(callback);
+}
+
+function notifyAuthReady() {
+  authListeners.forEach((cb) => cb());
+  authListeners.clear();
+}
+
 // Helper to check if we're in the browser
 const isBrowser = typeof window !== "undefined";
 
@@ -82,6 +101,7 @@ export async function restoreAuthFromNavigation(): Promise<boolean> {
       setMnemonic(mnemonic);
     }
     sessionStorage.removeItem(SESSION_KEY);
+    notifyAuthReady();
     return true;
   } catch (err) {
     console.error("Failed to restore auth:", err);

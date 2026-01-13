@@ -20,21 +20,17 @@ interface NoteListProps {
 
 export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
   const { isLoading: isAuthLoading, key, vaultId } = useRequireAuth();
-  const { engine: syncEngine, isInitialSyncComplete, isFreshVault, isEnabled } = useSync();
+  const { engine: syncEngine } = useSync();
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoadingNotes, setIsLoadingNotes] = useState(true);
+  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
-
-  // Show skeleton when sync is enabled and initial sync not complete (and not a fresh vault)
-  const showSyncSkeleton = isEnabled && !isInitialSyncComplete && !isFreshVault;
 
   const loadNotes = useCallback(async () => {
     if (!(key && vaultId)) {
       return;
     }
 
-    setIsLoadingNotes(true);
     try {
       const encryptedNotes = await db.notes
         .where("vaultId")
@@ -65,10 +61,10 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
       }
 
       setNotes(decryptedNotes);
+      setIsInitialLoadComplete(true);
     } catch (err) {
       console.error("Failed to load notes:", err);
-    } finally {
-      setIsLoadingNotes(false);
+      setIsInitialLoadComplete(true); // Don't block UI on error
     }
   }, [key, vaultId]);
 
@@ -142,9 +138,7 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
       </header>
 
       {/* Notes content area */}
-      {showSyncSkeleton ? (
-        <NotesItemsSkeleton />
-      ) : isLoadingNotes ? (
+      {!isInitialLoadComplete ? (
         <NotesItemsSkeleton />
       ) : (
         <>
