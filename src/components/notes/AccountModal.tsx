@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react";
 import { memo, useState } from "react";
+import { MnemonicDisplay } from "@/components/vault/MnemonicDisplay";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getMnemonic } from "@/lib/store";
 
 interface AccountModalProps {
   open: boolean;
@@ -59,10 +61,11 @@ export const AccountModal = memo(function AccountModal({
             <h3 className="md-h3 mb-2 font-bold text-sm uppercase">
               Vault Key
             </h3>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground mb-3 text-sm">
               Your vault key is only stored in memory and will be cleared when
               you close the tab.
             </p>
+            {getMnemonic() && <MnemonicDisplay compact mnemonic={getMnemonic()!} />}
           </div>
 
           <Button className="w-full" onClick={onSignOut}>

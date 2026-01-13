@@ -84,7 +84,7 @@ export const SignIn = memo(function SignIn() {
       }
 
       // Save auth state to sessionStorage to survive page navigation
-      saveAuthForNavigation(seed, matchedVaultId);
+      saveAuthForNavigation(seed, matchedVaultId, trimmedMnemonic);
       window.location.href = ROUTES.NOTES;
     } catch (err) {
       console.error("Sign in failed:", err);
