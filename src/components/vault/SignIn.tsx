@@ -32,41 +32,21 @@ export const SignIn = memo(function SignIn() {
 
     try {
       const seed = await mnemonicToSeed(trimmedMnemonic);
-      const key = await deriveKey(seed);
 
-      // Always compute the canonical vaultId from mnemonic
-      const canonicalVaultId = await generateVaultId(trimmedMnemonic);
+      // Run key derivation and vault ID generation in parallel
+      const [key, canonicalVaultId] = await Promise.all([
+        deriveKey(seed),
+        generateVaultId(trimmedMnemonic),
+      ]);
       let matchedVaultId: string | null = null;
 
-      // First, check Convex for the vault (source of truth for synced vaults)
-      if (convex) {
-        const remoteVault = await convex.query(api.vaults.get, {
-          vaultId: canonicalVaultId,
-        });
-
-        if (remoteVault) {
-          // Verify the key against the remote vault's encryptedVerifier
-          if (await verifyKey(remoteVault.encryptedVerifier, key)) {
-            // Create/update local vault entry from remote
-            await db.vault.put({
-              id: remoteVault.vaultId,
-              encryptedVerifier: remoteVault.encryptedVerifier,
-              createdAt: remoteVault.createdAt,
-            });
-            matchedVaultId = remoteVault.vaultId;
-          }
-        }
+      // Check local vault FIRST (fast) - canonical id
+      const localVault = await db.vault.get(canonicalVaultId);
+      if (localVault && (await verifyKey(localVault.encryptedVerifier, key))) {
+        matchedVaultId = canonicalVaultId;
       }
 
-      // Fallback: check local vault with canonical id (offline mode)
-      if (!matchedVaultId) {
-        const localVault = await db.vault.get(canonicalVaultId);
-        if (localVault && (await verifyKey(localVault.encryptedVerifier, key))) {
-          matchedVaultId = canonicalVaultId;
-        }
-      }
-
-      // Last resort: check all local vaults (for old vaults created before sync)
+      // Check all local vaults (for old vaults created before canonical id)
       if (!matchedVaultId) {
         const vaults = await db.vault.toArray();
         for (const vault of vaults) {
@@ -74,6 +54,23 @@ export const SignIn = memo(function SignIn() {
             matchedVaultId = vault.id;
             break;
           }
+        }
+      }
+
+      // Only check Convex if not found locally (slower network request)
+      if (!matchedVaultId && convex) {
+        const remoteVault = await convex.query(api.vaults.get, {
+          vaultId: canonicalVaultId,
+        });
+
+        if (remoteVault && (await verifyKey(remoteVault.encryptedVerifier, key))) {
+          // Create local vault entry from remote
+          await db.vault.put({
+            id: remoteVault.vaultId,
+            encryptedVerifier: remoteVault.encryptedVerifier,
+            createdAt: remoteVault.createdAt,
+          });
+          matchedVaultId = remoteVault.vaultId;
         }
       }
 
