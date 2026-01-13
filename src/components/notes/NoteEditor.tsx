@@ -1,5 +1,6 @@
-import { Menu, Trash2 } from "lucide-react";
+import { Menu, Moon, Sun, Trash2, User } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { AccountModal } from "@/components/notes/AccountModal";
 import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
 import { useSync } from "@/components/providers/SyncProvider";
 import {
@@ -17,6 +18,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoadingMessage } from "@/components/ui/loading-message";
@@ -24,6 +26,7 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { AUTOSAVE_DELAY_MS, ROUTES } from "@/lib/constants";
 import { decryptNoteData, encryptNoteData } from "@/lib/crypto";
 import { db } from "@/lib/db";
+import { clearEncryptionKey } from "@/lib/store";
 import { extractTitle } from "@/lib/utils";
 
 interface NoteEditorProps {
@@ -40,6 +43,10 @@ export const NoteEditor = memo(function NoteEditor({
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark")
+  );
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>("");
   const isNewNoteRef = useRef(false);
@@ -156,6 +163,19 @@ export const NoteEditor = memo(function NoteEditor({
     [noteId, key, vaultId, syncEngine]
   );
 
+  function toggleTheme() {
+    const newIsDark = !isDark;
+    document.documentElement.classList.toggle("dark", newIsDark);
+    document.documentElement.style.colorScheme = newIsDark ? "dark" : "light";
+    localStorage.setItem("theme", newIsDark ? "dark" : "light");
+    setIsDark(newIsDark);
+  }
+
+  function handleSignOut() {
+    clearEncryptionKey();
+    window.location.href = ROUTES.HOME;
+  }
+
   function handleContentChange(newContent: string) {
     setContent(newContent);
 
@@ -224,6 +244,15 @@ export const NoteEditor = memo(function NoteEditor({
             <Menu size={16} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setShowAccount(true)}>
+              <User size={16} />
+              Account
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={toggleTheme}>
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+              {isDark ? "Light mode" : "Dark mode"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => setShowDeleteDialog(true)}
               variant="destructive"
@@ -258,6 +287,12 @@ export const NoteEditor = memo(function NoteEditor({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AccountModal
+        onOpenChange={setShowAccount}
+        onSignOut={handleSignOut}
+        open={showAccount}
+      />
     </div>
   );
 });

@@ -35,7 +35,7 @@ export const CreateVault = memo(function CreateVault() {
         });
 
         // Save auth state for navigation
-        saveAuthForNavigation(seed, vaultId);
+        saveAuthForNavigation(seed, vaultId, newMnemonic);
         setIsReady(true);
       } catch (err) {
         console.error("Failed to create vault:", err);

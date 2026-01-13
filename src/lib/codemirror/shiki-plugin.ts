@@ -92,23 +92,51 @@ function highlightCodeBlock(
 
 /**
  * CodeMirror 6 plugin that applies Shiki syntax highlighting to fenced code blocks.
+ * Reads theme from DOM (checks for .dark class on documentElement).
+ * Watches for theme changes and rebuilds decorations automatically.
  */
-export function createShikiPlugin(
-  highlighter: HighlighterCore,
-  theme = "github-light"
-) {
+export function createShikiPlugin(highlighter: HighlighterCore) {
   return ViewPlugin.fromClass(
     class {
       decorations: DecorationSet;
+      view: EditorView;
+      observer: MutationObserver;
+      currentTheme: string;
 
       constructor(view: EditorView) {
+        this.view = view;
+        this.currentTheme = this.getTheme();
         this.decorations = this.buildDecorations(view);
+
+        // Watch for theme changes on <html> element
+        this.observer = new MutationObserver(() => {
+          const newTheme = this.getTheme();
+          if (newTheme !== this.currentTheme) {
+            this.currentTheme = newTheme;
+            this.decorations = this.buildDecorations(this.view);
+            this.view.dispatch({}); // Trigger re-render
+          }
+        });
+        this.observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
       }
 
       update(update: ViewUpdate) {
         if (update.docChanged || update.viewportChanged) {
           this.decorations = this.buildDecorations(update.view);
         }
+      }
+
+      destroy() {
+        this.observer.disconnect();
+      }
+
+      getTheme(): string {
+        return document.documentElement.classList.contains("dark")
+          ? "github-dark"
+          : "github-light";
       }
 
       buildDecorations(view: EditorView): DecorationSet {
@@ -137,7 +165,7 @@ export function createShikiPlugin(
                 highlighter,
                 code,
                 language,
-                theme,
+                this.currentTheme,
                 codeStart
               );
               decorations.push(...blockDecorations);

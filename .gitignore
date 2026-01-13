@@ -29,3 +29,4 @@ yarn-error.log*
 
 # PWA generated files
 dev-dist/
+.vercel

@@ -5,6 +5,7 @@ import { SESSION_KEY } from "./constants";
 
 let encryptionKey: CryptoKey | null = null;
 let currentVaultId: string | null = null;
+let currentMnemonic: string | null = null;
 
 // Helper to check if we're in the browser
 const isBrowser = typeof window !== "undefined";
@@ -25,9 +26,18 @@ export function getCurrentVaultId() {
   return currentVaultId;
 }
 
+export function setMnemonic(mnemonic: string) {
+  currentMnemonic = mnemonic;
+}
+
+export function getMnemonic() {
+  return currentMnemonic;
+}
+
 export function clearEncryptionKey() {
   encryptionKey = null;
   currentVaultId = null;
+  currentMnemonic = null;
   if (isBrowser) {
     sessionStorage.removeItem(SESSION_KEY);
   }
@@ -37,14 +47,14 @@ export function isAuthenticated() {
   return encryptionKey !== null && currentVaultId !== null;
 }
 
-export function saveAuthForNavigation(seed: Uint8Array, vaultId: string) {
+export function saveAuthForNavigation(seed: Uint8Array, vaultId: string, mnemonic: string) {
   if (!isBrowser) {
     return;
   }
   const seedBase64 = btoa(String.fromCharCode(...seed));
   sessionStorage.setItem(
     SESSION_KEY,
-    JSON.stringify({ seed: seedBase64, vaultId })
+    JSON.stringify({ seed: seedBase64, vaultId, mnemonic })
   );
 }
 
@@ -59,7 +69,7 @@ export async function restoreAuthFromNavigation(): Promise<boolean> {
   }
 
   try {
-    const { seed: seedBase64, vaultId } = JSON.parse(stored);
+    const { seed: seedBase64, vaultId, mnemonic } = JSON.parse(stored);
     const seedBytes = Uint8Array.from(atob(seedBase64), (c) => c.charCodeAt(0));
 
     // Dynamic import to avoid SSR issues with crypto module
@@ -68,6 +78,9 @@ export async function restoreAuthFromNavigation(): Promise<boolean> {
 
     setEncryptionKey(key);
     setCurrentVaultId(vaultId);
+    if (mnemonic) {
+      setMnemonic(mnemonic);
+    }
     sessionStorage.removeItem(SESSION_KEY);
     return true;
   } catch (err) {
