@@ -160,7 +160,7 @@ function buildExtensions(
   ];
 
   if (highlighter) {
-    extensions.push(createShikiPlugin(highlighter, "github-light"));
+    extensions.push(createShikiPlugin(highlighter));
   }
 
   return extensions;

@@ -1,4 +1,4 @@
-import { Menu, Trash2 } from "lucide-react";
+import { Menu, Moon, Sun, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
 import { useSync } from "@/components/providers/SyncProvider";
@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoadingMessage } from "@/components/ui/loading-message";
@@ -40,6 +41,9 @@ export const NoteEditor = memo(function NoteEditor({
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark")
+  );
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>("");
   const isNewNoteRef = useRef(false);
@@ -156,6 +160,14 @@ export const NoteEditor = memo(function NoteEditor({
     [noteId, key, vaultId, syncEngine]
   );
 
+  function toggleTheme() {
+    const newIsDark = !isDark;
+    document.documentElement.classList.toggle("dark", newIsDark);
+    document.documentElement.style.colorScheme = newIsDark ? "dark" : "light";
+    localStorage.setItem("theme", newIsDark ? "dark" : "light");
+    setIsDark(newIsDark);
+  }
+
   function handleContentChange(newContent: string) {
     setContent(newContent);
 
@@ -224,6 +236,11 @@ export const NoteEditor = memo(function NoteEditor({
             <Menu size={16} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={toggleTheme}>
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+              {isDark ? "Light mode" : "Dark mode"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => setShowDeleteDialog(true)}
               variant="destructive"

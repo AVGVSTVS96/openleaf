@@ -1,4 +1,5 @@
-import { memo } from "react";
+import { Moon, Sun } from "lucide-react";
+import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +20,18 @@ export const AccountModal = memo(function AccountModal({
   onOpenChange,
   onSignOut,
 }: AccountModalProps) {
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark")
+  );
+
+  function toggleTheme() {
+    const newIsDark = !isDark;
+    document.documentElement.classList.toggle("dark", newIsDark);
+    document.documentElement.style.colorScheme = newIsDark ? "dark" : "light";
+    localStorage.setItem("theme", newIsDark ? "dark" : "light");
+    setIsDark(newIsDark);
+  }
+
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-md">
@@ -28,6 +41,20 @@ export const AccountModal = memo(function AccountModal({
         </DialogHeader>
 
         <div className="space-y-4">
+          <div>
+            <h3 className="md-h3 mb-2 font-bold text-sm uppercase">
+              Appearance
+            </h3>
+            <Button
+              className="w-full justify-start gap-2"
+              onClick={toggleTheme}
+              variant="outline"
+            >
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+              {isDark ? "Switch to light mode" : "Switch to dark mode"}
+            </Button>
+          </div>
+
           <div>
             <h3 className="md-h3 mb-2 font-bold text-sm uppercase">
               Vault Key
