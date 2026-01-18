@@ -1,14 +1,9 @@
 import { memo, useState } from "react";
-import { convex } from "@/components/providers/ConvexClientProvider";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Textarea } from "@/components/ui/textarea";
-import { ROUTES } from "@/lib/constants";
-import { deriveKey, generateVaultId, verifyKey } from "@/lib/crypto";
-import { db } from "@/lib/db";
-import { mnemonicToSeed, validateMnemonic } from "@/lib/mnemonic";
-import { saveAuthForNavigation } from "@/lib/store";
-import { api } from "../../../convex/_generated/api";
+import { ROUTES, SESSION_KEY } from "@/lib/constants";
+import { validateMnemonic } from "@/lib/mnemonic";
 
 export const SignIn = memo(function SignIn() {
   const [mnemonic, setMnemonic] = useState("");
@@ -23,6 +18,7 @@ export const SignIn = memo(function SignIn() {
     setIsSigningIn(true);
     setError("");
 
+    // Validate mnemonic (fast - just word list check)
     const isValid = await validateMnemonic(trimmedMnemonic);
     if (!isValid) {
       setError("Invalid recovery phrase. Please check and try again.");
@@ -30,65 +26,10 @@ export const SignIn = memo(function SignIn() {
       return;
     }
 
-    try {
-      const seed = await mnemonicToSeed(trimmedMnemonic);
-
-      // Run key derivation and vault ID generation in parallel
-      const [key, canonicalVaultId] = await Promise.all([
-        deriveKey(seed),
-        generateVaultId(trimmedMnemonic),
-      ]);
-      let matchedVaultId: string | null = null;
-
-      // Check local vault FIRST (fast) - canonical id
-      const localVault = await db.vault.get(canonicalVaultId);
-      if (localVault && (await verifyKey(localVault.encryptedVerifier, key))) {
-        matchedVaultId = canonicalVaultId;
-      }
-
-      // Check all local vaults (for old vaults created before canonical id)
-      if (!matchedVaultId) {
-        const vaults = await db.vault.toArray();
-        for (const vault of vaults) {
-          if (await verifyKey(vault.encryptedVerifier, key)) {
-            matchedVaultId = vault.id;
-            break;
-          }
-        }
-      }
-
-      // Only check Convex if not found locally (slower network request)
-      if (!matchedVaultId && convex) {
-        const remoteVault = await convex.query(api.vaults.get, {
-          vaultId: canonicalVaultId,
-        });
-
-        if (remoteVault && (await verifyKey(remoteVault.encryptedVerifier, key))) {
-          // Create local vault entry from remote
-          await db.vault.put({
-            id: remoteVault.vaultId,
-            encryptedVerifier: remoteVault.encryptedVerifier,
-            createdAt: remoteVault.createdAt,
-          });
-          matchedVaultId = remoteVault.vaultId;
-        }
-      }
-
-      if (!matchedVaultId) {
-        setError("No vault found. Please create a new vault first.");
-        setIsSigningIn(false);
-        return;
-      }
-
-      // Save auth state to sessionStorage to survive page navigation
-      saveAuthForNavigation(seed, matchedVaultId, trimmedMnemonic);
-      window.location.href = ROUTES.NOTES;
-    } catch (err) {
-      console.error("Sign in failed:", err);
-      setError("Sign in failed. Please try again.");
-    } finally {
-      setIsSigningIn(false);
-    }
+    // Save mnemonic and navigate immediately
+    // Key derivation + vault verification happens in restoreAuthFromNavigation()
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ mnemonic: trimmedMnemonic }));
+    window.location.href = ROUTES.NOTES;
   }
 
   return (

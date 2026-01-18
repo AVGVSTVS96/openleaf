@@ -1,7 +1,6 @@
 import { memo, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ui/error-message";
-import { LoadingMessage } from "@/components/ui/loading-message";
 import { ROUTES } from "@/lib/constants";
 import { createVerifier, deriveKey, generateVaultId } from "@/lib/crypto";
 import { db } from "@/lib/db";
@@ -11,22 +10,23 @@ import { MnemonicDisplay } from "./MnemonicDisplay";
 
 export const CreateVault = memo(function CreateVault() {
   const [mnemonic, setMnemonic] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    async function createVault() {
+    async function setup() {
       try {
-        // Generate mnemonic
+        // Generate mnemonic FIRST (fast - just random words)
         const newMnemonic = await generateMnemonic();
-        setMnemonic(newMnemonic);
+        setMnemonic(newMnemonic); // Show immediately!
 
-        // Create vault automatically
+        // Now do slow crypto in background while user reads
         const seed = await mnemonicToSeed(newMnemonic);
-        const key = await deriveKey(seed);
+        const [key, vaultId] = await Promise.all([
+          deriveKey(seed),
+          generateVaultId(newMnemonic),
+        ]);
         const encryptedVerifier = await createVerifier(key);
-        const vaultId = await generateVaultId(newMnemonic);
 
         await db.vault.put({
           id: vaultId,
@@ -34,32 +34,20 @@ export const CreateVault = memo(function CreateVault() {
           createdAt: Date.now(),
         });
 
-        // Save auth state for navigation
         saveAuthForNavigation(seed, vaultId, newMnemonic);
         setIsReady(true);
       } catch (err) {
         console.error("Failed to create vault:", err);
-        const message = err instanceof Error ? err.message : "Unknown error";
-        setError(`Failed to create vault: ${message}`);
-      } finally {
-        setIsLoading(false);
+        setError(err instanceof Error ? err.message : "Unknown error");
       }
     }
 
-    createVault();
+    setup();
   }, []);
 
   function handleContinue() {
     const noteId = crypto.randomUUID();
     window.location.href = ROUTES.NOTE(noteId);
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <LoadingMessage message="Creating your vault..." />
-      </div>
-    );
   }
 
   return (
@@ -85,7 +73,7 @@ export const CreateVault = memo(function CreateVault() {
         disabled={!isReady}
         onClick={handleContinue}
       >
-        Start writing
+        {isReady ? "Start writing" : "Setting up..."}
       </Button>
     </div>
   );
