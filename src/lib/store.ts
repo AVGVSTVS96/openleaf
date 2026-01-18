@@ -88,18 +88,48 @@ export async function restoreAuthFromNavigation(): Promise<boolean> {
   }
 
   try {
-    const { seed: seedBase64, vaultId, mnemonic } = JSON.parse(stored);
-    const seedBytes = Uint8Array.from(atob(seedBase64), (c) => c.charCodeAt(0));
+    const data = JSON.parse(stored);
 
-    // Dynamic import to avoid SSR issues with crypto module
-    const { deriveKey } = await import("./crypto");
-    const key = await deriveKey(seedBytes);
+    // Handle new format (mnemonic only) vs old format (seed + vaultId)
+    if (data.mnemonic && !data.seed) {
+      // New optimistic flow - derive everything here
+      const { mnemonicToSeed } = await import("./mnemonic");
+      const { deriveKey, generateVaultId, verifyKey } = await import("./crypto");
+      const { db } = await import("./db");
 
-    setEncryptionKey(key);
-    setCurrentVaultId(vaultId);
-    if (mnemonic) {
+      const mnemonic = data.mnemonic;
+      const seedBytes = await mnemonicToSeed(mnemonic);
+      const [key, canonicalVaultId] = await Promise.all([
+        deriveKey(seedBytes),
+        generateVaultId(mnemonic),
+      ]);
+
+      // Verify vault exists locally
+      const vault = await db.vault.get(canonicalVaultId);
+      if (!vault || !(await verifyKey(vault.encryptedVerifier, key))) {
+        // Vault not found - redirect back to sign in
+        console.error("Vault not found for mnemonic");
+        sessionStorage.removeItem(SESSION_KEY);
+        window.location.href = "/signin?error=vault_not_found";
+        return false;
+      }
+
+      setEncryptionKey(key);
+      setCurrentVaultId(canonicalVaultId);
       setMnemonic(mnemonic);
+    } else {
+      // Old format with pre-computed seed
+      const seedBytes = Uint8Array.from(atob(data.seed), (c) => c.charCodeAt(0));
+      const { deriveKey } = await import("./crypto");
+      const key = await deriveKey(seedBytes);
+
+      setEncryptionKey(key);
+      setCurrentVaultId(data.vaultId);
+      if (data.mnemonic) {
+        setMnemonic(data.mnemonic);
+      }
     }
+
     sessionStorage.removeItem(SESSION_KEY);
     notifyAuthReady();
     return true;
