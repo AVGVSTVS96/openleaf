@@ -1,5 +1,5 @@
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
 
 // List all non-deleted notes for a vault
 export const list = query({
@@ -17,21 +17,25 @@ export const list = query({
   },
 });
 
-// Get notes updated after a certain version (for incremental sync)
-export const listSince = query({
+// Get a single note by vault + noteId
+export const getByNoteId = query({
   args: {
     vaultId: v.string(),
-    sinceVersion: v.number(),
+    noteId: v.string(),
   },
-  handler: async (ctx, { vaultId, sinceVersion }) => {
-    const notes = await ctx.db
+  handler: async (ctx, { vaultId, noteId }) => {
+    const note = await ctx.db
       .query("notes")
-      .withIndex("by_vaultId", (q) => q.eq("vaultId", vaultId))
-      .collect();
+      .withIndex("by_vaultId_and_noteId", (q) =>
+        q.eq("vaultId", vaultId).eq("noteId", noteId)
+      )
+      .first();
 
-    return notes
-      .filter((note) => note.version > sinceVersion)
-      .sort((a, b) => a.version - b.version);
+    if (!note || note.deleted) {
+      return null;
+    }
+
+    return note;
   },
 });
 
@@ -42,15 +46,16 @@ export const upsert = mutation({
     noteId: v.string(),
     encryptedData: v.string(),
     iv: v.string(),
-    createdAt: v.number(),
-    updatedAt: v.number(),
   },
   handler: async (ctx, args) => {
+    const now = Date.now();
+
     // Find existing note
     const existing = await ctx.db
       .query("notes")
-      .withIndex("by_vaultId", (q) => q.eq("vaultId", args.vaultId))
-      .filter((q) => q.eq(q.field("noteId"), args.noteId))
+      .withIndex("by_vaultId_and_noteId", (q) =>
+        q.eq("vaultId", args.vaultId).eq("noteId", args.noteId)
+      )
       .first();
 
     if (!existing) {
@@ -60,8 +65,8 @@ export const upsert = mutation({
         vaultId: args.vaultId,
         encryptedData: args.encryptedData,
         iv: args.iv,
-        createdAt: args.createdAt,
-        updatedAt: args.updatedAt,
+        createdAt: now,
+        updatedAt: now,
         version: 1,
         deleted: false,
       });
@@ -69,21 +74,12 @@ export const upsert = mutation({
       return { status: "created" as const, version: 1, id };
     }
 
-    // Conflict check: only update if incoming updatedAt is newer (last-write-wins)
-    if (args.updatedAt <= existing.updatedAt) {
-      return {
-        status: "conflict" as const,
-        currentVersion: existing.version,
-        currentUpdatedAt: existing.updatedAt,
-      };
-    }
-
-    // Update with incremented version
+    // Update existing note with incremented version.
     const newVersion = existing.version + 1;
     await ctx.db.patch(existing._id, {
       encryptedData: args.encryptedData,
       iv: args.iv,
-      updatedAt: args.updatedAt,
+      updatedAt: now,
       version: newVersion,
       deleted: false, // Undelete if was deleted
     });
@@ -97,48 +93,30 @@ export const remove = mutation({
   args: {
     vaultId: v.string(),
     noteId: v.string(),
-    deletedAt: v.number(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("notes")
-      .withIndex("by_vaultId", (q) => q.eq("vaultId", args.vaultId))
-      .filter((q) => q.eq(q.field("noteId"), args.noteId))
+      .withIndex("by_vaultId_and_noteId", (q) =>
+        q.eq("vaultId", args.vaultId).eq("noteId", args.noteId)
+      )
       .first();
 
     if (!existing) {
       return { status: "not_found" as const };
     }
 
-    // Only mark as deleted if this delete is newer
-    if (args.deletedAt <= existing.updatedAt && existing.deleted) {
+    if (existing.deleted) {
       return { status: "already_deleted" as const };
     }
 
     const newVersion = existing.version + 1;
     await ctx.db.patch(existing._id, {
       deleted: true,
-      updatedAt: args.deletedAt,
+      updatedAt: Date.now(),
       version: newVersion,
     });
 
     return { status: "deleted" as const, version: newVersion };
-  },
-});
-
-// Get the maximum version for a vault (for sync cursor)
-export const getMaxVersion = query({
-  args: { vaultId: v.string() },
-  handler: async (ctx, { vaultId }) => {
-    const notes = await ctx.db
-      .query("notes")
-      .withIndex("by_vaultId", (q) => q.eq("vaultId", vaultId))
-      .collect();
-
-    if (notes.length === 0) {
-      return 0;
-    }
-
-    return Math.max(...notes.map((n) => n.version));
   },
 });

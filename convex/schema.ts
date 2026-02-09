@@ -21,5 +21,6 @@ export default defineSchema({
     deleted: v.optional(v.boolean()), // Soft delete for sync
   })
     .index("by_vaultId", ["vaultId"])
-    .index("by_vaultId_and_updatedAt", ["vaultId", "updatedAt"]),
+    .index("by_vaultId_and_updatedAt", ["vaultId", "updatedAt"])
+    .index("by_vaultId_and_noteId", ["vaultId", "noteId"]),
 });
