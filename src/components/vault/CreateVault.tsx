@@ -1,11 +1,12 @@
 import { memo, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ui/error-message";
+import { convex } from "@/components/providers/ConvexClientProvider";
 import { ROUTES } from "@/lib/constants";
 import { createVerifier, deriveKey, generateVaultId } from "@/lib/crypto";
-import { db } from "@/lib/db";
 import { generateMnemonic, mnemonicToSeed } from "@/lib/mnemonic";
 import { saveAuthForNavigation } from "@/lib/store";
+import { api } from "../../../convex/_generated/api";
 import { MnemonicDisplay } from "./MnemonicDisplay";
 
 export const CreateVault = memo(function CreateVault() {
@@ -28,8 +29,12 @@ export const CreateVault = memo(function CreateVault() {
         ]);
         const encryptedVerifier = await createVerifier(key);
 
-        await db.vault.put({
-          id: vaultId,
+        if (!convex) {
+          throw new Error("Convex URL is not configured.");
+        }
+
+        await convex.mutation(api.vaults.create, {
+          vaultId,
           encryptedVerifier,
           createdAt: Date.now(),
         });

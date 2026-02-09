@@ -1,12 +1,11 @@
 import { FileText, PenLine, User } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useSync } from "@/components/providers/SyncProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useVaultNotes } from "@/lib/convex/notes";
 import { ROUTES } from "@/lib/constants";
 import { decryptNoteData } from "@/lib/crypto";
-import { db } from "@/lib/db";
 import { clearEncryptionKey } from "@/lib/store";
 import type { DecryptedNote } from "@/lib/types";
 import { extractTitle } from "@/lib/utils";
@@ -20,29 +19,21 @@ interface NoteListProps {
 
 export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
   const { isLoading: isAuthLoading, key, vaultId } = useRequireAuth();
-  const { engine: syncEngine } = useSync();
+  const encryptedNotes = useVaultNotes(vaultId);
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
 
   const loadNotes = useCallback(async () => {
-    if (!(key && vaultId)) {
+    if (!(key && vaultId) || encryptedNotes === undefined) {
       return;
     }
 
     try {
-      const encryptedNotes = await db.notes
-        .where("vaultId")
-        .equals(vaultId)
-        .reverse()
-        .sortBy("updatedAt");
-
-      // Filter out deleted notes
-      const activeNotes = encryptedNotes.filter((note) => !note.deleted);
       const decryptedNotes: DecryptedNote[] = [];
 
-      for (const note of activeNotes) {
+      for (const note of encryptedNotes) {
         try {
           const noteData = await decryptNoteData(
             note.encryptedData,
@@ -50,13 +41,13 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
             key
           );
           decryptedNotes.push({
-            id: note.id,
+            id: note.noteId,
             title: noteData.title || extractTitle(noteData.content),
             content: noteData.content,
             updatedAt: note.updatedAt,
           });
         } catch (err) {
-          console.error("Failed to decrypt note:", note.id, err);
+          console.error("Failed to decrypt note:", note.noteId, err);
         }
       }
 
@@ -66,33 +57,14 @@ export const NoteList = memo(function NoteList({ onNavigate }: NoteListProps) {
       console.error("Failed to load notes:", err);
       setIsInitialLoadComplete(true); // Don't block UI on error
     }
-  }, [key, vaultId]);
+  }, [encryptedNotes, key, vaultId]);
 
-  // Load notes on initial auth
+  // Load notes when auth is ready and Convex data arrives.
   useEffect(() => {
-    if (!isAuthLoading && key && vaultId) {
+    if (!isAuthLoading && key && vaultId && encryptedNotes !== undefined) {
       loadNotes();
     }
-  }, [isAuthLoading, key, vaultId, loadNotes]);
-
-  // Subscribe to sync engine status changes to reload notes
-  useEffect(() => {
-    if (!syncEngine) return;
-
-    // Load notes immediately if sync is already complete
-    if (syncEngine.getStatus() === "synced") {
-      loadNotes();
-    }
-
-    // Reload notes when sync completes
-    const unsubscribe = syncEngine.onStatusChange((status) => {
-      if (status === "synced") {
-        loadNotes();
-      }
-    });
-
-    return unsubscribe;
-  }, [syncEngine, loadNotes]);
+  }, [encryptedNotes, isAuthLoading, key, vaultId, loadNotes]);
 
   const filteredNotes = useMemo(() => {
     if (!searchQuery.trim()) {

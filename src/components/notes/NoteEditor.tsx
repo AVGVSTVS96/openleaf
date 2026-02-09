@@ -2,7 +2,6 @@ import { Menu, Moon, Sun, Trash2, User } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { AccountModal } from "@/components/notes/AccountModal";
 import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
-import { useSync } from "@/components/providers/SyncProvider";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,9 +22,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LoadingMessage } from "@/components/ui/loading-message";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useDeleteNote, useNoteById, useUpsertNote } from "@/lib/convex/notes";
 import { AUTOSAVE_DELAY_MS, ROUTES } from "@/lib/constants";
 import { decryptNoteData, encryptNoteData } from "@/lib/crypto";
-import { db } from "@/lib/db";
 import { clearEncryptionKey } from "@/lib/store";
 import { extractTitle } from "@/lib/utils";
 
@@ -39,7 +38,10 @@ export const NoteEditor = memo(function NoteEditor({
   onNavigate,
 }: NoteEditorProps) {
   const { isLoading: isAuthLoading, key, vaultId } = useRequireAuth();
-  const { engine: syncEngine } = useSync();
+  const encryptedNote = useNoteById(vaultId, noteId);
+  const upsertNote = useUpsertNote();
+  const deleteNote = useDeleteNote();
+
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -50,49 +52,74 @@ export const NoteEditor = memo(function NoteEditor({
   const saveTimeoutRef = useRef<number | null>(null);
   const lastSavedContentRef = useRef<string>("");
   const isNewNoteRef = useRef(false);
-
-  const loadNote = useCallback(async () => {
-    if (!key) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const note = await db.notes.get(noteId);
-      if (note) {
-        // Existing note
-        isNewNoteRef.current = false;
-        const noteData = await decryptNoteData(
-          note.encryptedData,
-          note.iv,
-          key
-        );
-        setContent(noteData.content);
-        lastSavedContentRef.current = noteData.content;
-      } else {
-        // New note - not yet persisted
-        isNewNoteRef.current = true;
-        setContent("");
-        lastSavedContentRef.current = "";
-      }
-    } catch (err) {
-      console.error("Failed to load note:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [noteId, key]);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
-    if (!isAuthLoading && key) {
-      loadNote();
-    }
-
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [isAuthLoading, key, loadNote]);
+  }, []);
+
+  useEffect(() => {
+    initialLoadRef.current = true;
+    setIsLoading(true);
+  }, [noteId]);
+
+  useEffect(() => {
+    if (isAuthLoading || !key || encryptedNote === undefined) {
+      return;
+    }
+
+    let isCancelled = false;
+    if (initialLoadRef.current) {
+      setIsLoading(true);
+    }
+
+    const load = async () => {
+      try {
+        if (!encryptedNote) {
+          if (isCancelled) {
+            return;
+          }
+          isNewNoteRef.current = true;
+          setContent("");
+          lastSavedContentRef.current = "";
+          setIsLoading(false);
+          return;
+        }
+
+        const noteData = await decryptNoteData(
+          encryptedNote.encryptedData,
+          encryptedNote.iv,
+          key
+        );
+
+        if (isCancelled) {
+          return;
+        }
+
+        isNewNoteRef.current = false;
+        setContent(noteData.content);
+        lastSavedContentRef.current = noteData.content;
+      } catch (err) {
+        if (!isCancelled) {
+          console.error("Failed to load note:", err);
+        }
+      } finally {
+        if (!isCancelled) {
+          initialLoadRef.current = false;
+          setIsLoading(false);
+        }
+      }
+    };
+
+    load();
+    return () => {
+      isCancelled = true;
+    };
+  }, [encryptedNote, isAuthLoading, key]);
 
   const saveNote = useCallback(
     async (newContent: string) => {
@@ -112,55 +139,20 @@ export const NoteEditor = memo(function NoteEditor({
           key
         );
 
-        const now = Date.now();
+        await upsertNote({
+          vaultId,
+          noteId,
+          encryptedData,
+          iv,
+        });
 
-        if (isNewNoteRef.current) {
-          // First save - create note
-          const note = {
-            id: noteId,
-            vaultId,
-            encryptedData,
-            iv,
-            createdAt: now,
-            updatedAt: now,
-            version: 1,
-            syncStatus: "pending" as const,
-          };
-          await db.notes.add(note);
-          isNewNoteRef.current = false;
-
-          // Sync to remote
-          if (syncEngine) {
-            syncEngine.pushNote(note);
-          }
-        } else {
-          // Update existing note
-          const existingNote = await db.notes.get(noteId);
-          const newVersion = (existingNote?.version || 0) + 1;
-
-          await db.notes.update(noteId, {
-            encryptedData,
-            iv,
-            updatedAt: now,
-            version: newVersion,
-            syncStatus: "pending",
-          });
-
-          // Sync to remote
-          if (syncEngine) {
-            const updatedNote = await db.notes.get(noteId);
-            if (updatedNote) {
-              syncEngine.pushNote(updatedNote);
-            }
-          }
-        }
-
+        isNewNoteRef.current = false;
         lastSavedContentRef.current = newContent;
       } catch (err) {
         console.error("Failed to save note:", err);
       }
     },
-    [noteId, key, vaultId, syncEngine]
+    [key, noteId, upsertNote, vaultId]
   );
 
   function toggleTheme() {
@@ -190,12 +182,11 @@ export const NoteEditor = memo(function NoteEditor({
 
   async function handleDelete() {
     try {
-      // Sync deletion to remote first, then delete locally
-      if (syncEngine) {
-        await syncEngine.pushDelete(noteId);
-      } else {
-        // No sync engine - just delete locally
-        await db.notes.delete(noteId);
+      if (vaultId) {
+        await deleteNote({
+          vaultId,
+          noteId,
+        });
       }
       onNavigate?.(ROUTES.NOTES);
     } catch (err) {
@@ -211,13 +202,12 @@ export const NoteEditor = memo(function NoteEditor({
     const hasContent = content.trim().length > 0;
 
     if (isNewNoteRef.current && !hasContent) {
-      // New note with no content - discard
       onNavigate?.(ROUTES.NOTES);
       return;
     }
 
     if (content !== lastSavedContentRef.current) {
-      saveNote(content);
+      void saveNote(content);
     }
 
     onNavigate?.(ROUTES.NOTES);
@@ -275,8 +265,7 @@ export const NoteEditor = memo(function NoteEditor({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete note?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This note will be permanently
-              deleted.
+              This action cannot be undone. This note will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

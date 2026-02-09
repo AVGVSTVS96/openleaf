@@ -16,13 +16,10 @@ interface Props {
 }
 
 export function ConvexClientProvider({ children }: Props) {
-  // If no Convex URL configured, render children without provider
-  // This allows the app to work in offline-only mode
+  // Convex is required for data access in the Convex-first architecture.
   if (!convex) {
-    console.warn(
-      "Convex URL not configured. Running in offline-only mode. Set PUBLIC_CONVEX_URL to enable sync."
-    );
-    return <>{children}</>;
+    console.error("Convex URL not configured. Set PUBLIC_CONVEX_URL to run OpenLeaf.");
+    return null;
   }
 
   return <ConvexProvider client={convex}>{children}</ConvexProvider>;

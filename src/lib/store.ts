@@ -89,45 +89,54 @@ export async function restoreAuthFromNavigation(): Promise<boolean> {
 
   try {
     const data = JSON.parse(stored);
+    const { deriveKey, generateVaultId, verifyKey } = await import("./crypto");
+    const { convex } = await import("@/components/providers/ConvexClientProvider");
+    const { api } = await import("../../convex/_generated/api");
+
+    if (!convex) {
+      console.error("Convex client not available");
+      sessionStorage.removeItem(SESSION_KEY);
+      return false;
+    }
+
+    let key: CryptoKey;
+    let vaultId: string;
+    let mnemonic: string | null = null;
 
     // Handle new format (mnemonic only) vs old format (seed + vaultId)
     if (data.mnemonic && !data.seed) {
-      // New optimistic flow - derive everything here
       const { mnemonicToSeed } = await import("./mnemonic");
-      const { deriveKey, generateVaultId, verifyKey } = await import("./crypto");
-      const { db } = await import("./db");
-
-      const mnemonic = data.mnemonic;
-      const seedBytes = await mnemonicToSeed(mnemonic);
-      const [key, canonicalVaultId] = await Promise.all([
+      const parsedMnemonic = data.mnemonic as string;
+      mnemonic = parsedMnemonic;
+      const seedBytes = await mnemonicToSeed(parsedMnemonic);
+      [key, vaultId] = await Promise.all([
         deriveKey(seedBytes),
-        generateVaultId(mnemonic),
+        generateVaultId(parsedMnemonic),
       ]);
-
-      // Verify vault exists locally
-      const vault = await db.vault.get(canonicalVaultId);
-      if (!vault || !(await verifyKey(vault.encryptedVerifier, key))) {
-        // Vault not found - redirect back to sign in
-        console.error("Vault not found for mnemonic");
-        sessionStorage.removeItem(SESSION_KEY);
-        window.location.href = "/signin?error=vault_not_found";
-        return false;
-      }
-
-      setEncryptionKey(key);
-      setCurrentVaultId(canonicalVaultId);
-      setMnemonic(mnemonic);
-    } else {
-      // Old format with pre-computed seed
+    } else if (data.seed && data.vaultId) {
       const seedBytes = Uint8Array.from(atob(data.seed), (c) => c.charCodeAt(0));
-      const { deriveKey } = await import("./crypto");
-      const key = await deriveKey(seedBytes);
-
-      setEncryptionKey(key);
-      setCurrentVaultId(data.vaultId);
+      key = await deriveKey(seedBytes);
+      vaultId = data.vaultId;
       if (data.mnemonic) {
-        setMnemonic(data.mnemonic);
+        mnemonic = data.mnemonic;
       }
+    } else {
+      sessionStorage.removeItem(SESSION_KEY);
+      return false;
+    }
+
+    const remoteVault = await convex.query(api.vaults.get, { vaultId });
+    if (!remoteVault || !(await verifyKey(remoteVault.encryptedVerifier, key))) {
+      console.error("Vault not found for provided credentials");
+      sessionStorage.removeItem(SESSION_KEY);
+      window.location.href = "/signin?error=vault_not_found";
+      return false;
+    }
+
+    setEncryptionKey(key);
+    setCurrentVaultId(vaultId);
+    if (mnemonic) {
+      setMnemonic(mnemonic);
     }
 
     sessionStorage.removeItem(SESSION_KEY);

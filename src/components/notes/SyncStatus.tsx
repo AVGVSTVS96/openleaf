@@ -1,50 +1,31 @@
-import { AlertCircle, Cloud, CloudOff, Loader2 } from "lucide-react";
+import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { memo } from "react";
-import { useSync } from "@/components/providers/SyncProvider";
+import { useConvexConnectionState } from "convex/react";
 
 export const SyncStatus = memo(function SyncStatus() {
-  const { status, isEnabled } = useSync();
+  const connectionState = useConvexConnectionState();
 
-  // Don't show anything if sync is not enabled
-  if (!isEnabled) {
-    return null;
-  }
+  const isSynced =
+    connectionState.isWebSocketConnected && !connectionState.hasInflightRequests;
+  const isSyncing =
+    connectionState.hasInflightRequests ||
+    (!connectionState.isWebSocketConnected && !connectionState.hasEverConnected);
+  const isOffline =
+    !connectionState.isWebSocketConnected && connectionState.hasEverConnected;
 
-  const config = {
-    synced: {
-      icon: Cloud,
-      className: "text-green-600",
-    },
-    syncing: {
-      icon: Loader2,
-      className: "text-blue-500 animate-spin",
-    },
-    offline: {
-      icon: CloudOff,
-      className: "text-muted-foreground",
-    },
-    error: {
-      icon: AlertCircle,
-      className: "text-destructive",
-    },
-  };
+  const iconConfig = isSynced
+    ? { icon: Cloud, className: "text-green-600", title: "Synced" }
+    : isSyncing
+      ? { icon: Loader2, className: "animate-spin text-blue-500", title: "Syncing..." }
+      : isOffline
+        ? { icon: CloudOff, className: "text-muted-foreground", title: "Offline" }
+        : { icon: Loader2, className: "animate-spin text-blue-500", title: "Connecting..." };
 
-  const { icon: Icon, className } = config[status];
+  const Icon = iconConfig.icon;
 
   return (
-    <div
-      className="flex h-8 w-8 items-center justify-center"
-      title={
-        status === "synced"
-          ? "Synced"
-          : status === "syncing"
-            ? "Syncing..."
-            : status === "offline"
-              ? "Offline"
-              : "Sync error"
-      }
-    >
-      <Icon className={className} size={16} />
+    <div className="flex h-8 w-8 items-center justify-center" title={iconConfig.title}>
+      <Icon className={iconConfig.className} size={16} />
     </div>
   );
 });
